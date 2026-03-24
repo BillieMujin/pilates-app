@@ -7,6 +7,7 @@ export interface ExerciseProp {
 
 export interface PostureAdjustments {
   kyphosis?: string | null
+  kyphosis_only?: string | null
   lordosis?: string | null
   flatback?: string | null
   military?: string | null
