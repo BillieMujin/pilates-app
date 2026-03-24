@@ -283,24 +283,6 @@ export default function ExerciseBrowser({
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      {/* ── Stats bar ── */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        {Object.entries(stats).map(([key, count]) => (
-          <div
-            key={key}
-            className="flex items-center gap-2 bg-surface rounded-xl px-4 py-2 shadow-sm border border-border"
-          >
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: LAYER_COLORS[key] }} />
-            <span className="text-sm font-medium text-foreground">{LAYER_LABELS[key]}</span>
-            <span className="text-sm text-muted">{count}</span>
-          </div>
-        ))}
-        <div className="flex items-center gap-2 bg-surface rounded-xl px-4 py-2 shadow-sm border border-border">
-          <span className="text-sm font-medium text-foreground">Total</span>
-          <span className="text-sm text-muted">{exercises.length}</span>
-        </div>
-      </div>
-
       {/* ── Filter bar (sticky) ── */}
       <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-lg -mx-4 sm:-mx-6 px-4 sm:px-6 py-4 mb-6 border-b border-border">
         {/* search */}
@@ -563,6 +545,11 @@ export default function ExerciseBrowser({
                 showFav={!!user}
                 inPlan={classPlan.has(exercise.id)}
                 onTogglePlan={() => togglePlanExercise(exercise.id)}
+                onMuscleClick={(muscle) => {
+                  setActiveMuscles(new Set([muscle]))
+                  setExpandedId(null)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
               />
             ))}
           </div>
@@ -612,6 +599,7 @@ interface CardProps {
   showFav: boolean
   inPlan: boolean
   onTogglePlan: () => void
+  onMuscleClick: (muscle: string) => void
 }
 
 function ExerciseCard({
@@ -624,6 +612,7 @@ function ExerciseCard({
   showFav,
   inPlan,
   onTogglePlan,
+  onMuscleClick,
 }: CardProps) {
   const layerColor = LAYER_COLORS[exercise.layer] ?? '#6b7280'
   const pastel = inPlan ? LAYER_PASTEL_SELECTED[exercise.layer] : LAYER_PASTELS[exercise.layer]
@@ -762,12 +751,13 @@ function ExerciseCard({
 
             {(exercise.primary_muscles?.length > 0 || exercise.secondary_muscles?.length > 0) && (
               <Section title="Muscle Engagement">
+                <p className="text-xs text-muted mb-2">Click a muscle to find all exercises that target it</p>
                 <div className="flex flex-wrap gap-1.5">
                   {exercise.primary_muscles?.map((m) => (
-                    <span key={m} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ backgroundColor: '#2d6a4f18', color: '#2d6a4f' }}>{m}</span>
+                    <button key={m} onClick={() => onMuscleClick(m)} className="text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all" style={{ backgroundColor: '#2d6a4f18', color: '#2d6a4f' }}>{m}</button>
                   ))}
                   {exercise.secondary_muscles?.map((m) => (
-                    <span key={m} className="text-xs font-medium px-2.5 py-1 rounded-full bg-black/5 text-muted">{m}</span>
+                    <button key={m} onClick={() => onMuscleClick(m)} className="text-xs font-medium px-2.5 py-1 rounded-full bg-black/5 text-muted cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all">{m}</button>
                   ))}
                 </div>
               </Section>
