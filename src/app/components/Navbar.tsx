@@ -19,12 +19,12 @@ export default function Navbar({ user }: NavbarProps) {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-surface/80 backdrop-blur-lg border-b border-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/[0.04]">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm shadow-primary/20">
             <svg
-              className="w-5 h-5 text-white"
+              className="w-4 h-4 text-white"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
@@ -38,24 +38,24 @@ export default function Navbar({ user }: NavbarProps) {
             </svg>
           </div>
           <div>
-            <span className="font-heading text-lg font-semibold text-foreground leading-tight block">
+            <span className="font-heading text-[17px] font-semibold text-foreground leading-tight block tracking-tight">
               Essential Matwork
             </span>
-            <span className="text-[11px] font-medium tracking-wider uppercase text-muted">
+            <span className="text-[10px] font-semibold tracking-[0.15em] uppercase text-foreground/30">
               STOTT PILATES
             </span>
           </div>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-muted hidden sm:block">
+              <span className="text-[13px] text-foreground/30 hidden sm:block">
                 {user.email}
               </span>
               <button
                 onClick={handleSignOut}
-                className="text-sm font-medium text-muted hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-black/5"
+                className="text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
               >
                 Sign Out
               </button>
@@ -63,7 +63,7 @@ export default function Navbar({ user }: NavbarProps) {
           ) : (
             <Link
               href="/auth/login"
-              className="text-sm font-medium text-surface bg-primary hover:bg-primary-light transition-colors px-4 py-2 rounded-xl"
+              className="text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-4 py-2 rounded-xl shadow-sm shadow-primary/20 hover:shadow-md hover:shadow-primary/25"
             >
               Sign In
             </Link>
