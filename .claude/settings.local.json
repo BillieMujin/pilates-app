@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__list_projects",
+      "mcp__supabase__list_organizations",
+      "mcp__supabase__get_cost",
+      "mcp__supabase__confirm_cost",
+      "mcp__supabase__create_project",
+      "mcp__github__create_repository",
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack)"
+    ]
+  }
+}

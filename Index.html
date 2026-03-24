@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOTT PILATES — Essential Matwork Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f0ea; --surface:#fff; --surface2:#faf7f3;
+    --ink:#1a1510; --ink2:#5a4f44; --ink3:#9a8f84;
+    --layer1:#e8574a; --layer2:#e6b800; --accent:#2d6a4f; --accent2:#52b788;
+    --border:#e0d8ce;
+    --kyphosis:#c77dff; --lordosis:#f4a261; --flatback:#4cc9f0; --military:#06d6a0; --swayback:#ff6b6b;
+    --breath-in:#3a86ff; --breath-out:#2d6a4f; --prop:#b5520a;
+    --shadow:0 2px 20px rgba(26,21,16,.08); --shadow-lg:0 8px 40px rgba(26,21,16,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
+  header{background:var(--ink);color:#f5f0ea;padding:36px 48px 28px;position:relative;overflow:hidden}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.04)}
+  .header-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px}
+  header h1{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,42px);font-weight:700;line-height:1.1;margin-bottom:6px}
+  header p{color:rgba(245,240,234,.6);font-size:12px;max-width:620px;font-weight:300}
+  .breath-banner{background:linear-gradient(135deg,#1a2f3f,#0d1f2d);padding:14px 48px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;border-bottom:2px solid rgba(58,134,255,.3)}
+  .bbt{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:3px}
+  .breath-principle{display:flex;align-items:center;gap:10px}
+  .bp-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .bp-in{background:rgba(58,134,255,.2);border:1.5px solid rgba(58,134,255,.5)}
+  .bp-out{background:rgba(45,106,79,.25);border:1.5px solid rgba(82,183,136,.5)}
+  .bp-text strong{display:block;font-size:11px;font-weight:600;color:#fff}
+  .bp-text span{font-size:11px;color:rgba(255,255,255,.5)}
+  .stabilise-note{background:rgba(255,200,50,.08);border:1px solid rgba(255,200,50,.25);border-radius:6px;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.7);max-width:360px}
+  .stabilise-note strong{color:#ffc832}
+  .posture-legend{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 48px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .pl-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-right:4px}
+  .posture-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .2s;user-select:none}
+  .posture-badge:hover{transform:translateY(-1px)}
+  .posture-badge.active{border-color:currentColor}
+  .pb-kyphosis{background:rgba(199,125,255,.15);color:#7b2d8b}
+  .pb-lordosis{background:rgba(244,162,97,.15);color:#b5520a}
+  .pb-flatback{background:rgba(76,201,240,.15);color:#0077a8}
+  .pb-military{background:rgba(6,214,160,.15);color:#027a5a}
+  .pb-swayback{background:rgba(255,107,107,.15);color:#b52020}
+  .pdot{width:7px;height:7px;border-radius:50%}
+  .dot-kyphosis{background:var(--kyphosis)}.dot-lordosis{background:var(--lordosis)}.dot-flatback{background:var(--flatback)}.dot-military{background:var(--military)}.dot-swayback{background:var(--swayback)}
+  .filter-bar{padding:12px 48px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+  .filter-btn{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink2);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+  .filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .filter-btn.active{background:var(--ink);color:#f5f0ea;border-color:var(--ink)}
+  .filter-btn.layer1.active{background:var(--layer1);border-color:var(--layer1);color:#fff}
+  .filter-btn.layer2.active{background:#9a7200;border-color:#9a7200;color:#fff}
+  .search-wrap{position:relative;margin-left:auto}
+  .search-input{padding:5px 12px 5px 30px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--surface);width:175px;color:var(--ink);transition:all .2s}
+  .search-input:focus{outline:none;border-color:var(--accent);width:210px}
+  .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:12px}
+  main{padding:28px 48px;max-width:1440px;margin:0 auto}
+  .stats-bar{display:flex;gap:20px;padding:10px 0 18px}
+  .stat-item{text-align:center}
+  .stat-num{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+  .stat-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+  .section-header{display:flex;align-items:center;gap:14px;margin:28px 0 14px}
+  .section-tag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:3px 10px;border-radius:4px;font-weight:500;white-space:nowrap}
+  .tag-warmup{background:rgba(26,21,16,.08);color:var(--ink2)}
+  .tag-layer1{background:rgba(232,87,74,.15);color:#b02c1f}
+  .tag-layer2{background:rgba(230,184,0,.2);color:#7a6200}
+  .tag-layer3{background:rgba(192,57,43,.12);color:#8b1e10}
+  .section-line{flex:1;height:1px;background:var(--border)}
+  .section-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:600}
+  .exercise-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;margin-bottom:6px}
+  .exercise-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);transition:all .25s;animation:fadeUp .3s ease both}
+  .exercise-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .exercise-card.expanded{border-color:var(--accent)}
+  .exercise-card.hidden{display:none}
+  .card-header{padding:12px 15px;display:flex;align-items:center;gap:10px;cursor:pointer}
+  .card-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+  .layer-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .ld-warmup{background:var(--ink3)}.ld-layer1{background:var(--layer1)}.ld-layer2{background:var(--layer2)}.ld-layer3{background:#c0392b}
+  .exercise-name{font-weight:600;font-size:13px;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .reps-badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3);white-space:nowrap}
+  .expand-icon{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink3);flex-shrink:0;transition:all .2s}
+  .exercise-card.expanded .expand-icon{background:var(--accent);border-color:var(--accent);color:#fff;transform:rotate(45deg)}
+  .start-preview{padding:2px 15px 5px;display:flex;align-items:center;gap:6px}
+  .sp-icon{font-size:11px;color:var(--ink3);flex-shrink:0}
+  .sp-text{font-size:11px;color:var(--ink2);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .breath-preview{padding:3px 15px 8px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .bp-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:500;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bp-pill-in{background:rgba(58,134,255,.1);color:#1a5cbf}
+  .bp-pill-out{background:rgba(45,106,79,.1);color:#1a5030}
+  .bp-arrow{color:var(--ink3);font-size:10px;flex-shrink:0}
+  .posture-row{padding:2px 15px 9px;display:flex;gap:5px}
+  .posture-indicator{width:7px;height:7px;border-radius:50%;opacity:.18;transition:opacity .2s}
+  .posture-indicator.active{opacity:1}
+  .pi-kyphosis{background:var(--kyphosis)}.pi-lordosis{background:var(--lordosis)}.pi-flatback{background:var(--flatback)}.pi-military{background:var(--military)}.pi-swayback{background:var(--swayback)}
+  .card-body{display:none;border-top:1px solid var(--border);background:var(--surface2)}
+  .exercise-card.expanded .card-body{display:block}
+  .card-section{padding:11px 15px;border-bottom:1px solid var(--border)}
+  .card-section:last-child{border-bottom:none}
+  .cs-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:7px}
+  .start-section{background:linear-gradient(135deg,#f6f3ee,#f0ebe2);border:1px solid #ddd4c4;border-radius:8px;padding:10px 13px;font-size:12px;color:var(--ink);line-height:1.6}
+  .start-section strong{color:var(--accent);font-weight:600}
+  .breath-section{background:linear-gradient(135deg,#f0f6ff,#f5fbf8);border:1px solid #d0e4f5;border-radius:8px;padding:11px 13px}
+  .breath-phases{display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap}
+  .breath-phase{flex:1;min-width:130px;padding:8px 10px;border-radius:6px}
+  .breath-phase-in{background:rgba(58,134,255,.1);border-left:3px solid var(--breath-in)}
+  .breath-phase-out{background:rgba(45,106,79,.1);border-left:3px solid var(--breath-out)}
+  .bpl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin-bottom:2px}
+  .bpl-in{color:var(--breath-in)}.bpl-out{color:var(--breath-out)}
+  .stabilise-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;background:rgba(45,106,79,.12);color:var(--breath-out);border-radius:3px;padding:1px 5px;margin-bottom:4px;letter-spacing:.05em}
+  .breath-phase-text{font-size:11px;color:var(--ink);line-height:1.5}
+  .breath-note{font-size:11px;color:var(--ink2);line-height:1.5;padding-top:8px;border-top:1px solid rgba(58,134,255,.15);font-style:italic}
+  .breath-note strong{font-style:normal;color:var(--ink)}
+  .muscle-list{display:flex;flex-wrap:wrap;gap:5px}
+  .mtag{font-size:11px;padding:3px 8px;border-radius:4px;background:rgba(45,106,79,.1);color:var(--accent);font-weight:500}
+  .mtag.sec{background:rgba(26,21,16,.06);color:var(--ink2)}
+  .props-grid{display:flex;flex-direction:column;gap:7px}
+  .prop-item{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:8px;background:rgba(181,82,10,.06);border:1px solid rgba(181,82,10,.15)}
+  .prop-item.barrel-prop{background:rgba(45,106,79,.06);border-color:rgba(45,106,79,.2)}
+  .prop-tool{display:flex;align-items:center;gap:5px;flex-shrink:0;min-width:130px}
+  .prop-icon{font-size:14px}
+  .prop-name{font-size:11px;font-weight:600;color:var(--prop)}
+  .prop-item.barrel-prop .prop-name{color:var(--accent)}
+  .prop-postures{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px}
+  .prop-posture-dot{display:inline-block;width:6px;height:6px;border-radius:50%}
+  .prop-right{flex:1}
+  .prop-tip{font-size:11px;color:var(--ink2);line-height:1.4}
+  .prop-for{font-size:10px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:.05em;color:var(--ink3);margin-top:2px}
+  .no-props{font-size:11px;color:var(--ink3);font-style:italic}
+  .posture-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .posture-item{padding:8px 10px;border-radius:8px;font-size:11px;line-height:1.4;transition:opacity .25s}
+  .posture-item strong{display:block;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:1px}
+  .pi-kl{background:rgba(199,125,255,.1);color:#5a1a6b}.pi-kl strong{color:#7b2d8b}
+  .pi-lo{background:rgba(244,162,97,.1);color:#7a3a0a}.pi-lo strong{color:#b5520a}
+  .pi-fb{background:rgba(76,201,240,.1);color:#00557a}.pi-fb strong{color:#0077a8}
+  .pi-ml{background:rgba(6,214,160,.1);color:#024a38}.pi-ml strong{color:#027a5a}
+  .pi-sb{background:rgba(255,107,107,.1);color:#7a1010}.pi-sb strong{color:#b52020}
+  @media(max-width:768px){
+    header,.breath-banner,.posture-legend,.filter-bar,main{padding-left:18px;padding-right:18px}
+    .exercise-grid{grid-template-columns:1fr}
+    .posture-grid{grid-template-columns:1fr}
+    .breath-phases{flex-direction:column}
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">STOTT PILATES® — Essential Matwork</div>
+  <h1>Muscular, Breathing &amp; Postural Reference</h1>
+  <p>Starting positions · STOTT lateral thoracic breathing with stabilise-first principle · Primary &amp; secondary muscles · Props including arc barrel, flex band, ball, towel · Postural programming for Kyphosis-Lordosis, Lordosis, Flat Back, Military &amp; Sway Back.</p>
+</header>
+
+<div class="breath-banner">
+  <div>
+    <div class="bbt">STOTT Core Breathing Principle</div>
+    <div style="color:rgba(255,255,255,.75);font-size:12px;max-width:360px;line-height:1.6">Lateral thoracic breathing — wide into the sides and back of the ribcage. On every exhale: TA engages first, then movement initiates within that same breath.</div>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div class="breath-principle">
+      <div class="bp-icon bp-in">🫁</div>
+      <div class="bp-text"><strong>Inhale</strong><span>Lateral &amp; posterior ribcage — prepare &amp; lengthen</span></div>
+    </div>
+    <div class="breath-principle">
+      <div class="bp-icon bp-out">💨</div>
+      <div class="bp-text"><strong>Exhale</strong><span>TA engages first → movement follows</span></div>
+    </div>
+  </div>
+  <div class="stabilise-note"><strong>Stabilise-first rule:</strong> On every exhale, engage TA &amp; pelvic floor before any limb or spinal movement. Ab Prep is the only exception — head nod initiates on the inhale as preparation.</div>
+</div>
+
+<div class="posture-legend">
+  <span class="pl-label">Posture Types →</span>
+  <span class="posture-badge pb-kyphosis" onclick="togglePosture('kyphosis',this)"><span class="pdot dot-kyphosis"></span>Kyphosis-Lordosis</span>
+  <span class="posture-badge pb-lordosis" onclick="togglePosture('lordosis',this)"><span class="pdot dot-lordosis"></span>Lordosis</span>
+  <span class="posture-badge pb-flatback" onclick="togglePosture('flatback',this)"><span class="pdot dot-flatback"></span>Flat Back</span>
+  <span class="posture-badge pb-military" onclick="togglePosture('military',this)"><span class="pdot dot-military"></span>Military</span>
+  <span class="posture-badge pb-swayback" onclick="togglePosture('swayback',this)"><span class="pdot dot-swayback"></span>Sway Back</span>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterLayer('all',this)">All</button>
+  <button class="filter-btn" onclick="filterLayer('warmup',this)">Warm-Up</button>
+  <button class="filter-btn layer1" onclick="filterLayer('layer1',this)">★ Layer 1</button>
+  <button class="filter-btn layer2" onclick="filterLayer('layer2',this)">Layer 2</button>
+  <button class="filter-btn layer3" onclick="filterLayer('layer3',this)">Layer 3</button>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" placeholder="Search exercises or muscles…" oninput="searchExercises(this.value)">
+  </div>
+</div>
+
+<main>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num">10</div><div class="stat-label">Warm-Up</div></div>
+    <div class="stat-item"><div class="stat-num">11</div><div class="stat-label">★ Layer 1</div></div>
+    <div class="stat-item"><div class="stat-num">14</div><div class="stat-label">Layer 2</div></div>
+    <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">Layer 3</div></div>
+  </div>
+  <div id="exercise-container"></div>
+</main>
+
+<script>
+const PDOTC = {kyphosis:'#c77dff',lordosis:'#f4a261',flatback:'#4cc9f0',military:'#06d6a0',swayback:'#ff6b6b'};
+const PCOLORS = {
+  kyphosis:{cls:'pi-kl',label:'Kyphosis-Lordosis'},
+  lordosis:{cls:'pi-lo',label:'Lordosis'},
+  flatback:{cls:'pi-fb',label:'Flat Back'},
+  military:{cls:'pi-ml',label:'Military'},
+  swayback:{cls:'pi-sb',label:'Sway Back'}
+};
+const PROP_ICONS = {band:'🎀',ball:'⚽',towel:'🟫',blanket:'🟧',barrel:'🛢️'};
+
+const EX = [
+
+// ══════════════════════════════════════════════════════
+// WARM-UP
+// ══════════════════════════════════════════════════════
+{name:'Breathing',layer:'warmup',reps:'5–8 cycles',
+start:'<strong>Supine</strong>, neutral spine, knees bent hip-width, feet flat. Arms long by sides, palms down. Or <strong>seated</strong> tall on the mat or a chair. Ribcage heavy; neck long.',
+inhale:'Expand the ribcage laterally and posteriorly — feel the sides and back of the ribs widen',
+exhale:'Engage TA and pelvic floor → allow the lower ribs to gently knit down; abdominal wall draws gently in',
+bnote:'This exercise IS the breath. 5–8 slow cycles. Encourage 3D expansion: front, sides and back. Avoid lifting the upper chest or tensing the shoulders. Pelvis and spine remain in neutral throughout.',
+primary:['Diaphragm','Transversus abdominis','Pelvic floor'],
+secondary:['Internal & External intercostals','Serratus anterior','Levatores costarum'],
+props:[
+  {tool:'band',name:'Flex band around ribcage',for:['kyphosis','lordosis','flatback','military','swayback'],tip:'Wrap loosely around the lower ribcage. On the inhale push the ribs out into the band laterally. On the exhale feel the band assist rib closure. Immediate tactile feedback for lateral thoracic breathing.'},
+  {tool:'towel',name:'Rolled towel under head',for:['kyphosis','military'],tip:'Supports the cervical spine in neutral when thoracic kyphosis or military posture pulls the head into forward position. Prevents upper chest compensation.'}
+],
+postures:{
+  kyphosis:'Cue lateral and posterior breathing — counteracts upper chest breathing habit. Prevent thoracic spine collapsing further on the exhale.',
+  lordosis:'Focus on lateral costal expansion to avoid anterior rib flare on the inhale. Exhale TA engagement helps manage anterior pelvic tilt tendency.',
+  flatback:'Encourage AP ribcage expansion as well as lateral to help restore thoracic mobility.',
+  military:'Lateral breathing decompresses overworked erectors. Strictly avoid upper chest and shoulder elevation.',
+  swayback:'Teach diaphragmatic descent without triggering anterior pelvic tilt. Posterior ribcage breathing is especially helpful.'
+}},
+
+{name:'Imprint & Release',layer:'warmup',reps:'5–8 cycles',
+start:'<strong>Supine</strong>, neutral spine, knees bent hip-width, feet flat. Arms long by sides, palms down. Find and establish neutral spine before beginning — a small natural lumbar curve off the mat.',
+inhale:'Inhale laterally to prepare in neutral spine',
+exhale:'Engage TA and pelvic floor → gently imprint the lumbar spine toward the mat; tailbone does not curl',
+bnote:'Inhale to release back to neutral. Each cycle is one full breath. The imprint is subtle — not a full posterior pelvic tilt. Ribs stay heavy on the mat. The exhale stabilisation always precedes the pelvic movement.',
+primary:['Transversus abdominis','Multifidus','Rectus abdominis (lower fibres)'],
+secondary:['Gluteus maximus (lower fibres)','Psoas major','Iliacus'],
+props:[
+  {tool:'band',name:'Flex band around ribcage',for:['lordosis','flatback'],tip:'Helps distinguish rib flare (common in lordosis) from true lumbar imprint. Cue the client to keep the ribs connected to the band even as the lumbar imprints.'},
+  {tool:'towel',name:'Folded towel under lumbar',for:['flatback','military'],tip:'A small folded towel under the lumbar provides proprioceptive feedback for the neutral curve — teach neutral, not imprint, for these posture types.'}
+],
+postures:{
+  kyphosis:'Avoid deep imprint. Focus on exhale TA stabilisation and gentle release to neutral only. Imprint may exaggerate the existing thoracic kyphosis.',
+  lordosis:'Key exercise. Exhale TA → imprint directly addresses anterior pelvic tilt habit. Therapeutic and foundational.',
+  flatback:'Avoid the imprint phase entirely. Exhale to stabilise TA in neutral only. Use the release phase as the therapeutic movement — cue lumbar curve awareness.',
+  military:'Prioritise the release phase. Reduce posterior tilt on the exhale; work toward neutral. Teaches the client what neutral feels like.',
+  swayback:'Do not teach imprint. Exhale to engage TA in neutral only. Imprint reinforces the already dominant posterior pelvic tilt pattern.'
+}},
+
+{name:'Hip Release',layer:'warmup',reps:'3–5 breaths/side',
+start:'<strong>Supine</strong>, neutral spine. One knee drawn into the chest (or figure-four for piriformis). Supporting leg bent or extended flat. Spine and pelvis remain neutral and grounded.',
+inhale:'Inhale laterally — allow the hip joint to settle passively into the position',
+exhale:'Engage TA → allow the hip flexors and rotators to release and lengthen; feel the hip joint decompress',
+bnote:'3–5 slow breath cycles per side. The exhale TA stabilisation prevents the pelvis from rolling or hiking as the hip releases. Never force range. Allow gravity and breath to do the work.',
+primary:['Psoas major & minor','Iliacus','Piriformis'],
+secondary:['Gluteus medius','Tensor fasciae latae','Obturator externus & internus'],
+props:[
+  {tool:'band',name:'Flex band around thigh',for:['lordosis','swayback'],tip:'Loop the band around the thigh of the releasing leg and hold the ends. Gentle traction on the exhale assists hip flexor release and reinforces the stabilised pelvis.'}
+],
+postures:{
+  kyphosis:'Releases tight hip flexors that anteriorly tilt the pelvis, feeding the lumbar lordosis component. Prioritise in every session.',
+  lordosis:'Essential — tight psoas/iliacus are primary contributors. Multiple exhale cycles per side before moving on.',
+  flatback:'Gentle release. Avoid overstretching already lengthened posterior hip structures. Focus on hip flexors only.',
+  military:'Deep exhale hip joint release supports upright alignment without posterior chain strain.',
+  swayback:'Release tight hip extensors and external rotators. Keep pelvis neutral — exhale TA prevents the pelvis from following the leg.'
+}},
+
+{name:'Spinal Rotation',layer:'warmup',reps:'4–6 each side',
+start:'<strong>Supine</strong>, neutral spine, knees bent and stacked (knees fall to one side) — or <strong>seated</strong> tall. In supine: arms in a T, shoulders heavy. In seated: sitting tall on the sit bones.',
+inhale:'Inhale laterally to lengthen — feel the crown of the head float up and the spine decompress',
+exhale:'Engage TA → rotate the thoracic spine, maintaining length; ribs stay connected; pelvis does not rotate',
+bnote:'Inhale to return to centre. Rotation occurs on the exhale after TA stabilises the pelvis and lumbar spine. Avoid losing spinal length as you rotate. Pelvis stays completely still throughout.',
+primary:['Rotatores longus & brevis','Multifidus','External & Internal oblique'],
+secondary:['Semispinalis thoracis','Transversus abdominis','Obliques capitis superior & inferior'],
+props:[
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback','swayback'],tip:'In supine rotation, the ball between knees reinforces neutral pelvis and prevents the pelvis from following the legs during the exhale rotation.'}
+],
+postures:{
+  kyphosis:'Exhale rotation mobilises the stiff thoracic spine. Cue rotation without adding flexion — keep the chest open.',
+  lordosis:'Exhale TA stabilisation prevents lumbar rotation substitution. Thoracic rotation is the goal; the lumbar stays still.',
+  flatback:'Highly beneficial — exhale rotation restores segmental thoracic and lumbar mobility. Full range appropriate.',
+  military:'Slow exhale rotation reduces erector overactivity. Do not compress or shorten the thoracic at peak rotation.',
+  swayback:'Maintain upright spine on inhale. Cue thoracic initiation on the exhale — not lumbar rotation.'
+}},
+
+{name:'Cat Stretch',layer:'warmup',reps:'5–8 cycles',
+start:'<strong>Quadruped</strong>, hands directly under shoulders, knees directly under hips. Neutral spine — no sag or rounding. Head in line with spine. Weight evenly distributed through hands and knees.',
+inhale:'Inhale to extend — TA lightly engaged; spine arches, tail lifts, chest opens, head lifts last (cow/extension phase)',
+exhale:'Engage TA → scoop the abdominals up and in, tailbone drops, spine rounds segment by segment, head follows last (cat/flexion phase)',
+bnote:'STOTT: exhale to flex (cat), inhale to extend (cow). The exhale TA engagement drives spinal flexion. Shoulder blades stable throughout — no winging. Movement should feel fluid and breath-driven through every segment.',
+primary:['Rectus abdominis','Transversus abdominis','Multifidus','Erector spinae'],
+secondary:['Serratus anterior','Semispinalis thoracis','Pectoralis minor'],
+props:[
+  {tool:'towel',name:'Folded towel under knees',for:['kyphosis','lordosis','military','swayback'],tip:'Padding under the knees makes the quadruped position comfortable enough to fully focus on spinal articulation and breath rather than joint discomfort.'},
+  {tool:'ball',name:'Small ball under one hand',for:['flatback','military'],tip:'Places a proprioceptive challenge under the heel of one hand — cue pressing gently into the ball on the inhale extension to facilitate thoracic mobility.'}
+],
+postures:{
+  kyphosis:'Emphasise the inhale extension (cow) phase. Limit exhale flexion range — avoid adding to existing thoracic kyphosis. Extension is the therapeutic direction.',
+  lordosis:'Exhale flexion phase is therapeutic — allows lumbar to decompress. Extension phase: monitor lumbar hyperextension carefully.',
+  flatback:'Full range through both phases — restores mobility in both directions. Most therapeutic warm-up exercise for flat back.',
+  military:'Inhale extension phase helps restore the lumbar curve. Move through full symmetrical range.',
+  swayback:'Focus on lumbar flexion in the exhale phase. Limit extension to avoid exaggerating the existing lumbar curve.'
+}},
+
+{name:'Hip Rolls',layer:'warmup',reps:'5–8',
+start:'<strong>Supine</strong>, neutral spine, knees bent hip-width, feet flat. Arms long by sides, palms down. Equal weight through both feet. Establish neutral spine before beginning.',
+inhale:'Inhale laterally to prepare in neutral spine',
+exhale:'Engage TA → tailbone lifts, sacrum peels, then lumbar vertebra by vertebra off the mat',
+bnote:'Inhale at the top (shoulder bridge). Exhale to articulate back down — sternum, ribs, lumbar vertebra by vertebra. Articulation is completely breath-driven. Keep equal weight through both feet throughout.',
+primary:['Gluteus maximus','Hamstrings (biceps femoris, semitendinosus, semimembranosus)','Transversus abdominis'],
+secondary:['Multifidus','Iliocostalis lumborum','Adductors'],
+props:[
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback','military','swayback'],tip:'Squeezing the ball activates the adductors and cues neutral pelvis — prevents hip dropping during articulation and reinforces even weight through both feet.'},
+  {tool:'band',name:'Flex band around lower thighs',for:['swayback','lordosis'],tip:'The band encourages hip abductor engagement and prevents the knees from collapsing — reinforces neutral pelvis alignment through the bridge.'}
+],
+postures:{
+  kyphosis:'Hip bridge decompresses the thoracic spine. Exhale articulation is safe and beneficial. Good for opening the anterior chest.',
+  lordosis:'Exhale articulation teaches lumbar flexion and reduces compression. Deep TA throughout. Excellent foundational exercise.',
+  flatback:'Articulation restores segmental lumbar mobility. Use slow breath-paced movement — each vertebra should be felt individually.',
+  military:'Develops glute activation pattern. Avoid over-posteriorly tilting the pelvis at the top — bridge to neutral, not into posterior tilt.',
+  swayback:'Reduce range — mini bridge only. Exhale articulation should not push into excessive lumbar extension at the top.'
+}},
+
+{name:'Scapula Isolation',layer:'warmup',reps:'5–8 each direction',
+start:'<strong>Supine</strong>, neutral spine, knees bent. Arms reaching toward the ceiling, perpendicular to floor, palms facing each other. Or <strong>seated</strong> tall, arms by sides.',
+inhale:'Inhale laterally as the scapulae protract — arms reach long toward the ceiling; ribcage expands',
+exhale:'Engage TA → retract and depress the scapulae; shoulder blades slide back toward the spine and down toward the hips',
+bnote:'In supine: exhale to slide scapulae toward the hips. In seated: exhale to draw them back and down. Neck long and cervical spine neutral throughout. Do not elevate the shoulders on the inhale.',
+primary:['Serratus anterior','Trapezius (middle & lower)','Rhomboid major & minor'],
+secondary:['Pectoralis minor','Levator scapulae','Subscapularis'],
+props:[
+  {tool:'band',name:'Flex band between hands',for:['kyphosis','military'],tip:'Hold the band taut between both hands with arms reaching up. On the exhale depression, the band provides gentle resistance as the scapulae draw down — enhances lower trapezius recruitment for postural correction.'}
+],
+postures:{
+  kyphosis:'Critical. Exhale retraction and depression directly counters rounded shoulders and elevated scapulae. Perform slowly.',
+  lordosis:'Maintain neutral cervical and thoracic on both phases. Good upper body awareness exercise.',
+  flatback:'Good thoracoscapular rhythm training. Exhale depression improves spinal alignment.',
+  military:'Exhale depression reduces upper trapezius tightness — very important for this posture type.',
+  swayback:'Exhale scapular depression improves upper thoracic posture. Keep pelvis neutral in seated.'
+}},
+
+{name:'Arm Circles',layer:'warmup',reps:'3–5 each direction',
+start:'<strong>Supine</strong>, neutral spine, knees bent. Both arms reaching toward the ceiling. Or <strong>seated</strong> tall. Scapulae in neutral resting position — not elevated or retracted.',
+inhale:'Inhale as the arm(s) move through the first half of the circle — away from the body or overhead; ribcage expands',
+exhale:'Engage TA → complete the circle and return; stabilise the ribcage and scapulae as the arm(s) return',
+bnote:'Breathing follows natural shoulder mechanics: inhale = expansion; exhale = return and stabilise. Scapulae stable throughout — no shrugging on the inhale. Ribcage does not move with the arm.',
+primary:['Deltoid (anterior, medial & posterior)','Rotator cuff (supraspinatus, teres minor, infraspinatus, subscapularis)','Serratus anterior'],
+secondary:['Trapezius (upper & lower)','Pectoralis major','Biceps & Triceps brachii'],
+props:[
+  {tool:'band',name:'Flex band between hands',for:['kyphosis','lordosis'],tip:'Hold the band taut during bilateral arm circles. Tension encourages serratus anterior engagement and scapular awareness throughout the arc.'}
+],
+postures:{
+  kyphosis:'Mobilises tight pectorals and anterior shoulder. Cue scapular stability — avoid thoracic collapse on the inhale as the arm reaches overhead.',
+  lordosis:'Maintain neutral spine and pelvis. Exhale TA prevents rib flare during the return phase.',
+  flatback:'Thoracic mobility through arm movement — both phases beneficial.',
+  military:'Slow and controlled. Watch for upper trapezius dominance and shoulder elevation on the inhale.',
+  swayback:'Safe and beneficial. Upper body mobility on a stable, neutral pelvis.'
+}},
+
+{name:'Head Nods',layer:'warmup',reps:'5–8',
+start:'<strong>Supine</strong>, neutral spine, knees bent. Arms long by sides. Head resting on the mat in neutral cervical alignment — a small natural cervical curve is present. Shoulders relaxed and heavy.',
+inhale:'Inhale laterally to prepare — cervical spine in neutral, shoulders heavy',
+exhale:'Engage TA and pelvic floor → gently nod the chin toward the chest; craniovertebral flexion only; deep neck flexors engage',
+bnote:'Inhale to return to neutral. Small, subtle movement — not a full chin-to-chest curl. The stabilise-first principle applies: TA stabilises before the cervical movement initiates. Keep the upper cervical area from over-compressing.',
+primary:['Longus colli & capitis','Rectus capitis anterior & lateralis'],
+secondary:['Sternocleidomastoid','Scalenus anterior, medius & posterior','Semispinalis capitis'],
+props:[
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'A small folded towel under the occiput brings the cervical spine into neutral before the exercise begins. Without it the head is already in extension relative to the mat, making the nod harder to isolate.'},
+  {tool:'ball',name:'Small ball under chin',for:['kyphosis','swayback'],tip:'Hold a small soft ball between chin and chest. On the exhale nod, gently press the chin into the ball — provides tactile feedback for the correct range of craniovertebral flexion without over-flexing.'}
+],
+postures:{
+  kyphosis:'Essential. Exhale TA stabilise → nod trains deep cervical flexors to counteract forward head posture. Foundational for this type.',
+  lordosis:'Cervical awareness. Exhale TA stabilisation ensures the nod is isolated and does not initiate from a chin-jut.',
+  flatback:'Cervical neutral training — restores natural cervical lordosis awareness. Both phases beneficial.',
+  military:'Reduces overactive sternocleidomastoid. Exhale deep neck flexor engagement is the key postural correction.',
+  swayback:'Corrects forward head carriage common with swayback. Perform this as preparation for all subsequent curl-up exercises.'
+}},
+
+{name:'Elevation & Depression of Scapulae',layer:'warmup',reps:'5–8',
+start:'<strong>Supine</strong>, neutral spine, knees bent, arms long by sides. Or <strong>seated</strong> tall on sit bones. Spine long, neck neutral, shoulders at rest.',
+inhale:'Inhale to elevate — shoulders float up toward the ears; ribcage expands naturally',
+exhale:'Engage TA → depress the scapulae; lower trapezius activates; shoulder blades slide away from the ears toward the hips',
+bnote:'The exhalation drives the depression — connecting breath to lower trapezius activation. Keep the spine long throughout both phases. Do not collapse the thoracic on the exhale.',
+primary:['Trapezius (upper & lower divisions)','Levator scapulae','Serratus anterior'],
+secondary:['Pectoralis minor','Rhomboids','Subclavius'],
+props:[
+  {tool:'band',name:'Flex band under thighs (seated)',for:['kyphosis','military'],tip:'In seated, hold the band under the thighs and grasp the ends. On the exhale depression the band provides gentle downward resistance — intensifying lower trapezius recruitment and making the depression more palpable.'}
+],
+postures:{
+  kyphosis:'Exhale depression against gravity is critical — trains lower trapezius to counteract the kyphotic scapular position. Perform slowly.',
+  lordosis:'Maintain neutral cervical and thoracic. Exhale depression reinforces good scapular resting position.',
+  flatback:'Good thoracoscapular rhythm. Both phases beneficial.',
+  military:'Exhale depression reduces upper trapezius tightness — the most important corrective phase for this type.',
+  swayback:'Exhale depression improves upper thoracic posture. Keep pelvis neutral in seated.'
+}},
+
+// ══════════════════════════════════════════════════════
+// LAYER 1
+// ══════════════════════════════════════════════════════
+{name:'Ab Prep',layer:'layer1',reps:'5–10',
+start:'<strong>Supine</strong>, neutral spine, knees bent hip-width, feet flat. Arms long by sides, palms down. Ribcage heavy. Establish neutral lumbar curve before beginning.',
+inhale:'Inhale laterally to prepare → nod the head (craniovertebral flexion only — this is the unique exception where the head nod is initiated on the inhale as preparation)',
+exhale:'Engage TA and pelvic floor → curl the thoracic spine up off the mat; lower ribs remain connected; gaze toward the knees',
+bnote:'Ab Prep is the only exercise where the head nod initiates on the inhale as preparation. All other exercises follow the stabilise-first rule on the exhale. Sequence: inhale (nod) → exhale (stabilise TA → curl). Lower back stays neutral or gently imprinted depending on the client.',
+primary:['Rectus abdominis','Transversus abdominis','External oblique','Internal oblique'],
+secondary:['Sternocleidomastoid','Longus colli','Serratus anterior'],
+props:[
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'Reduces cervical flexion load and allows the client to focus on the thoracic curl rather than compensating with neck strain. Particularly important for kyphosis — avoids adding cervical flexion on top of thoracic kyphosis.'},
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback','swayback'],tip:'Squeezing the ball activates the adductors and cues neutral pelvis. Prevents knees falling apart and the pelvis from tipping — helpful for clients who cannot find neutral independently.'},
+  {tool:'band',name:'Flex band around lower ribcage',for:['lordosis','swayback'],tip:'On the exhale, cue the client to feel the ribs knitting toward the band. Prevents rib flare during the curl and reinforces lower rib connection to the mat.'},
+  {tool:'barrel',name:'Arc barrel under thoracic spine',for:['kyphosis','military'],tip:'Position the arc barrel under the mid-thoracic spine so the apex supports the area of greatest kyphosis. The curved surface passively opens the thoracic into extension before the exercise begins — the client starts from a more neutral position rather than fighting the kyphotic curve. Dramatically reduces compensatory neck flexion and makes the exhale curl achievable with correct form. Head rests on the down slope. This is the primary STOTT barrel modification for supine abdominal work in kyphosis.'}
+],
+postures:{
+  kyphosis:'Reduce the curl-up range significantly — avoid adding to thoracic kyphosis. Arc barrel under thoracic is the most effective modification. Support head. Exhale TA engagement is the priority over the height of the curl.',
+  lordosis:'Excellent. Inhale nod → exhale TA then curl. Gentle imprint on the exhale addresses anterior pelvic tilt.',
+  flatback:'Do not cue posterior pelvic tilt on the exhale. Maintain neutral or slight lumbar curve. The inhale nod is present but the exhale curl should not flatten the lumbar.',
+  military:'Reduce cervical flexion on the exhale curl. Head support. The inhale nod is appropriate. Small curl only.',
+  swayback:'Neutral pelvis throughout — no imprint on the exhale. The inhale nod is present. Limit curl range. Exhale TA in neutral is the therapeutic goal.'
+}},
+
+{name:'Breast Stroke Preps 1–3',layer:'layer1',reps:'3–5',
+start:'<strong>Prone</strong>, neutral spine. Prep 1: arms long by sides, forehead on mat or folded towel. Prep 2: hands stacked under forehead. Prep 3: arms reaching forward. Legs hip-width, toes pointed.',
+inhale:'Inhale laterally to prepare in prone neutral — feel the posterior ribcage expand into the mat',
+exhale:'Engage TA → lift chest and/or arms off the mat; scapulae retract and depress; neck long, gaze down',
+bnote:'Inhale to lower back down with control. Exhale stabilises first, then extension initiates. Keep neck long on the lift — do not lead with the chin. Glutes lightly engaged to protect the lumbar throughout.',
+primary:['Erector spinae (iliocostalis, longissimus)','Multifidus','Rhomboid major & minor','Trapezius (middle & lower)'],
+secondary:['Gluteus maximus','Semispinalis thoracis','Deltoid (posterior)'],
+props:[
+  {tool:'towel',name:'Rolled towel under forehead (Prep 1)',for:['kyphosis','military'],tip:'Supports the head in neutral for clients who cannot yet maintain cervical neutral in prone. Allows focus on thoracic extension without cervical strain.'},
+  {tool:'ball',name:'Small ball under abdomen',for:['lordosis'],tip:'Place just below the navel. As the client exhales and engages TA before the lift, cue them to feel the abdomen lift slightly away from the ball — prevents lumbar hyperextension.'},
+  {tool:'barrel',name:'Arc barrel under abdomen/lower ribcage',for:['kyphosis'],tip:'Position the apex of the arc barrel under the lower ribcage or abdomen. The barrel passively opens the thoracic spine into extension before the exhale lift begins — the client starts in partial thoracic extension rather than full kyphotic flexion. This makes thoracic extension accessible when otherwise blocked on the flat mat. Progress from Prep 1 through to Prep 3 as thoracic mobility improves.'}
+],
+postures:{
+  kyphosis:'Highly beneficial. Exhale stabilise → extension directly addresses thoracic kyphosis. Arc barrel is the key prop. Progress through all three prep levels gradually.',
+  lordosis:'Limit lumbar extension on exhale. Emphasise thoracic extension and scapular retraction. Watch for rib flare on inhale.',
+  flatback:'Excellent for restoring both thoracic and lumbar extension. Exhale into full available range.',
+  military:'Good thoracic extension on exhale. Limit lumbar extension cue — focus on thoracic.',
+  swayback:'Thoracic extension is useful. Monitor lumbar on exhale — extension should be thoracic, not lumbar hyperextension.'
+}},
+
+{name:'Shell Stretch',layer:'layer1',reps:'3–5 breath holds',
+start:'<strong>Quadruped → Child\'s pose</strong>: from quadruped, sit hips back toward heels, arms reach forward or rest by sides. Forehead toward the mat. Spine in a long passive C-curve.',
+inhale:'Inhale into the back of the ribcage — feel the posterior ribs expand against the thighs',
+exhale:'Engage TA lightly → allow the posterior ribcage and erectors to release further; spine decompresses passively',
+bnote:'Hold for 3–5 full breath cycles. This is a rest position and counterpose. Posterior ribcage 3D breathing in this position is highly therapeutic. No active movement — the exhale releases, not contracts.',
+primary:['Erector spinae (passive stretch)','Multifidus (passive stretch)','Gluteus maximus (passive stretch)'],
+secondary:['Quadratus lumborum','Latissimus dorsi','Piriformis'],
+props:[
+  {tool:'blanket',name:'Rolled blanket between thighs and calves',for:['kyphosis','lordosis'],tip:'For clients who cannot sit back to the heels (tight hip flexors or knees), a rolled blanket between the back of the thighs and calves allows the pelvis to descend and the spine to fully release.'},
+  {tool:'barrel',name:'Arc barrel — drape prone over apex',for:['kyphosis'],tip:'Since full child\'s pose is contraindicated for kyphosis (adds thoracic flexion), use the arc barrel as the alternative: client drapes prone over the barrel with the apex under the mid-thoracic spine, arms relaxed forward. This achieves posterior ribcage breathing and spinal decompression in a position of gentle thoracic extension rather than flexion — therapeutically opposite to the flat mat shell stretch but serving the same recovery and decompression purpose between extension exercises.'}
+],
+postures:{
+  kyphosis:'Contraindicated in full child\'s pose — adds to thoracic kyphosis. Use arc barrel modification: prone drape over barrel in extension. Posterior breathing only.',
+  lordosis:'Therapeutic lumbar decompression. Full shell stretch excellent. Posterior ribcage breathing especially beneficial here.',
+  flatback:'Gentle passive stretch. Posterior breathing adds mobility. Avoid forcing posterior tilt — this is passive.',
+  military:'Good lumbar release between extension exercises. Posterior breathing decompresses the lumbar segment.',
+  swayback:'Helpful to release lumbar erectors. Enter with neutral pelvis to avoid reinforcing posterior tilt pattern.'
+}},
+
+{name:'Hundred',layer:'layer1',reps:'10 sets (100 pumps)',
+start:'<strong>Supine</strong>, neutral spine. Legs in table-top (90/90 hip and knee) or extended at 45–60°. Head and thoracic spine curled up — gaze toward knees. Arms long by sides 2–3 inches off mat. Shoulder blades just off the mat.',
+inhale:'Inhale for 5 arm pumps — lateral ribcage expands wide; ribs stay open and ribcage remains stable',
+exhale:'Engage TA → continue 5 arm pumps; lower ribs knit down, navel gently draws in; TA deepens into the 5 beats',
+bnote:'The STOTT 5:5 lateral thoracic breath is the signature of this exercise. The ribcage must not collapse on the exhale — it stabilises while TA deepens beneath it. TA is engaged before the pumping begins. Never hold the breath between phases.',
+primary:['Transversus abdominis','Rectus abdominis','Psoas major & minor','Iliacus','External oblique'],
+secondary:['Deltoid (anterior)','Serratus anterior','Longus colli'],
+props:[
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback','military'],tip:'Squeezing the ball activates the adductors and reinforces neutral pelvic alignment throughout the 100 pumps — prevents leg separation and pelvis tilting.'},
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'Place under the occiput if the client cannot maintain the curl-up without excessive neck tension. Can also lower the head to the mat — the 5:5 breath pattern and TA engagement are the primary goals, not curl height.'},
+  {tool:'band',name:'Flex band around lower ribcage',for:['lordosis','swayback'],tip:'On each exhale, cue the ribs to knit toward the band. Prevents rib flare and reinforces lower rib connection throughout the sustained exercise.'},
+  {tool:'barrel',name:'Arc barrel under thoracic spine',for:['kyphosis','military'],tip:'Place the arc barrel under the mid-thoracic spine so the apex passively opens the thoracic kyphosis. Client performs the Hundred with the thoracic supported in a more neutral or extended position — reducing the cervical flexion compensation that occurs when kyphosis clients try to curl off the flat mat. Head rests on the down slope. Legs remain at table-top. This is the primary STOTT barrel modification for kyphosis in supine abdominal work.'}
+],
+postures:{
+  kyphosis:'Head support or head down on mat. Legs at table-top only. Arc barrel under thoracic is the most effective modification. The 5:5 breath with TA is the primary goal — not flexion height.',
+  lordosis:'Imprint pelvis. Sustained exhale TA deepens and counteracts anterior tilt. Excellent exercise when performed with control.',
+  flatback:'Neutral pelvis throughout — do not imprint. Table-top legs. The 5:5 breath pattern is appropriate.',
+  military:'Head support or head down. Reduce cervical flexion cue. Focus on 5:5 breathing with stable neutral spine.',
+  swayback:'Neutral pelvis — never imprint. Table-top legs. Reduce sets initially. 5:5 breath with TA is the priority.'
+}},
+
+{name:'Half Roll Back',layer:'layer1',reps:'5–8',
+start:'<strong>Seated</strong> tall on the sit bones, knees bent, feet flat on the mat. Arms reaching forward at shoulder height. Spine in neutral — not slumped. Find the sit bones and establish upright alignment before beginning.',
+inhale:'Inhale laterally to sit tall — lengthen through the crown of the head; neutral spine; arms reach forward',
+exhale:'Engage TA and pelvic floor → tailbone drops under, spine curves into a C-shape from base to top; arms remain parallel to the floor',
+bnote:'Inhale to hold the C-curve briefly (optional). Exhale to roll back up — TA engaged, stack each vertebra, return to tall sitting. The exhale initiates and drives the roll-back. Keep equal weight through both sit bones throughout.',
+primary:['Transversus abdominis','Rectus abdominis','Multifidus','Iliocostalis lumborum'],
+secondary:['Psoas major & minor','Internal oblique','Erector spinae (eccentric)'],
+props:[
+  {tool:'band',name:'Flex band under feet',for:['kyphosis','lordosis','flatback'],tip:'Hold the ends of the band with both hands while seated. On the exhale roll-back the band provides gentle resistance and feedback — helping find the C-curve smoothly and supporting the return to upright. Also helps clients with tight hamstrings maintain the seated start position.'},
+  {tool:'towel',name:'Folded towel under sit bones',for:['flatback','swayback'],tip:'Raises the pelvis slightly, reducing the posterior tilt tendency and making it easier to find the neutral spine sitting position before the exhale roll-back begins.'},
+  {tool:'barrel',name:'Arc barrel — seated on down slope',for:['kyphosis','lordosis'],tip:'Seat the client on the down slope of the arc barrel facing the apex. The barrel\'s curved surface naturally supports lumbar flexion in the C-curve position and prevents the thoracic spine from collapsing into kyphosis during the roll-back. For kyphosis clients this is one of the best setups — the barrel provides a guided arc for the exhale C-curve that keeps the lumbar doing the work rather than the thoracic. The client sits taller and rolls back with more segmental control than on the flat mat.'}
+],
+postures:{
+  kyphosis:'Reduce roll-back range — stop before thoracic rounding begins. Exhale TA stabilises first; only the lumbar rolls back. The C-curve should live in the lower lumbar, not the thoracic.',
+  lordosis:'Beneficial — teaches spinal flexion control and posterior pelvic tilt. Exhale stabilise → roll back is therapeutic.',
+  flatback:'Small range only — maintain slight lumbar curve on the exhale. Articulation without forcing posterior tilt.',
+  military:'Teaches segmental lumbar flexion without cervical loading. Exhale back, inhale return to tall sitting.',
+  swayback:'Reduce range significantly. Neutral pelvis at the tall-sitting start position is essential. Towel under sit bones helps establish this.'
+}},
+
+{name:'Roll Up',layer:'layer1',reps:'5–8',
+start:'<strong>Supine</strong>, neutral spine, legs extended long (or bent for modification). Arms reaching overhead, resting on the mat. Head in neutral. Feet flexed.',
+inhale:'Inhale laterally to prepare — arms float toward the ceiling; nod the head',
+exhale:'Engage TA → peel the spine off the mat segment by segment; arms reach toward the feet',
+bnote:'Inhale at top (upright sitting). Exhale to hinge forward from hip over legs (flat-back hinge). Inhale to return upright. Exhale to roll back down — C-curve first, then each vertebra to mat. Two full breath cycles per repetition. Spine should articulate evenly through every segment.',
+primary:['Rectus abdominis','Transversus abdominis','External & Internal oblique','Psoas major & minor'],
+secondary:['Longus colli','Erector spinae','Hamstrings'],
+props:[
+  {tool:'band',name:'Flex band under feet',for:['lordosis','flatback','military'],tip:'Hold the ends of the band with both hands. On the exhale peel-up the band assists the articulation and supports the movement — reduces demand on hip flexors and abdominals, making the roll-up accessible. Also supports the hamstring stretch at the top.'},
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback'],tip:'Squeezing the ball activates adductors and maintains neutral pelvic alignment on the exhale roll-up — prevents legs from separating or pelvis from rocking.'}
+],
+postures:{
+  kyphosis:'Contraindicated in full form — adds significant thoracic flexion load to an already kyphotic spine. Substitute half roll back. If attempted, bent knees and very limited range only.',
+  lordosis:'Beneficial for abdominal strengthening. Monitor the lumbar portion — exhale should peel each vertebra clearly off the mat.',
+  flatback:'Bent-knees modification. Band under feet. Avoid forcing posterior tilt on the exhale peel. Restore lumbar curve awareness on inhale at top.',
+  military:'Half range only. Avoid compressing the already reduced thoracic curve. Band assists.',
+  swayback:'Contraindicated — reinforces posterior tilt and kyphotic upper back pattern. Substitute half roll back or ab prep.'
+}},
+
+{name:'One Leg Circle',layer:'layer1',reps:'5 each direction',
+start:'<strong>Supine</strong>, neutral spine. Working leg extended toward ceiling (~70–80° for tight hamstrings). Supporting leg extended long or bent. Arms long by sides, palms down. Pelvis square and grounded.',
+inhale:'Inhale laterally as the leg crosses the midline and begins the circle',
+exhale:'Engage TA → leg completes the arc and returns to centre; TA and hip stabilisers maintain the pelvis completely still',
+bnote:'The exhale occurs at the moment of greatest challenge to pelvic stability — the downswing. The pelvis must not tilt, rotate or shift during the circle. Breathe continuously — no breath holding between repetitions.',
+primary:['Psoas major & minor','Iliacus','Gluteus medius & minimus','TFL','Hip adductors'],
+secondary:['Transversus abdominis','Multifidus','Rectus femoris'],
+props:[
+  {tool:'band',name:'Flex band around working foot',for:['kyphosis','lordosis','flatback'],tip:'Loop the band around the working foot and hold the ends. Allows the leg to be held at a higher angle for clients with tight hamstrings or lordotic posture. Also provides feedback for the circle pathway.'}
+],
+postures:{
+  kyphosis:'Safe. Focus on stable neutral pelvis and lateral thoracic breathing throughout.',
+  lordosis:'Maintain neutral or gentle imprint during circles. Controls hip flexor over-recruitment.',
+  flatback:'Neutral pelvis essential. Avoid posterior tilt during the moving leg.',
+  military:'Great hip mobility. Watch for lumbar substitution during the downswing.',
+  swayback:'Neutral pelvis is the priority — no imprint. Start with small circles and progress range gradually.'
+}},
+
+{name:'Spine Twist',layer:'layer1',reps:'3–5 each side',
+start:'<strong>Seated</strong> tall, legs extended in front. Feet flexed, inner thighs together. Arms reaching out to a T. Sitting on the sit bones — not slumped. Spine long in neutral.',
+inhale:'Inhale laterally to sit tall — lengthen through the crown; arms reach wide to the T',
+exhale:'Engage TA → rotate the thoracic spine; two short pulse exhales at end range to deepen the rotation',
+bnote:'Inhale to return to centre. The two-pulse exhale at end range is the STOTT pattern — each pulse deepens the oblique contraction without losing height. Pelvis stays square; both sit bones grounded. Ribcage rotates on a stable pelvis.',
+primary:['External oblique','Internal oblique','Rotatores longus & brevis','Multifidus'],
+secondary:['Erector spinae','Semispinalis thoracis','Serratus anterior'],
+props:[
+  {tool:'towel',name:'Folded towel under sit bones',for:['flatback','swayback','lordosis'],tip:'Elevates the pelvis into slight anterior tilt, making it easier to sit tall with a neutral lumbar curve. The inhale lengthening becomes more accessible and the exhale rotation is cleaner.'},
+  {tool:'band',name:'Flex band under feet',for:['kyphosis','military'],tip:'Allows slight knee bend for clients with tight hamstrings who struggle to sit tall with extended legs.'},
+  {tool:'barrel',name:'Arc barrel — seated on down slope',for:['kyphosis'],tip:'Seat the client on the down slope of the arc barrel. The barrel\'s curve supports the lumbar and pelvis in slight anterior tilt — the client automatically sits taller, making the inhale lengthening and exhale thoracic rotation far more accessible. For kyphosis clients who struggle to achieve an upright seated position, this is often the most effective setup for thoracic rotation work.'}
+],
+postures:{
+  kyphosis:'Excellent. Exhale TA → rotation mobilises the stiff thoracic spine. Sit very tall — do not add flexion during rotation. The inhale tall is as important as the exhale rotation.',
+  lordosis:'Sit tall, neutral pelvis on the inhale. Rotate without allowing anterior ribs to flare.',
+  flatback:'Highly beneficial — exhale rotation mobilises immobile thoracic and lumbar segments. Full range appropriate.',
+  military:'Controlled exhale rotation. Avoid compressing the thoracic at peak range.',
+  swayback:'Sit upright on inhale. Towel under sit bones helps. Exhale rotation is beneficial for thoracic mobility.'
+}},
+
+{name:'Rolling Like a Ball',layer:'layer1',reps:'8–10',
+start:'<strong>Seated</strong> in balance at the back of the sit bones. Knees bent, feet off mat, held behind the thighs or around the shins. Spine in a C-curve. Head lowered, gaze toward knees. Shoulder blades just off the thighs.',
+inhale:'Inhale laterally to roll back to shoulder blade level — maintain the C-curve shape throughout',
+exhale:'Engage TA → roll forward and return to balanced position on the sit bones',
+bnote:'Never roll onto the neck or cervical spine. The C-curve shape must remain consistent throughout — do not drop the chin further or straighten the spine on the roll. The breath drives the momentum. Stop rolling if the head drops to the mat.',
+primary:['Transversus abdominis','Rectus abdominis','Erector spinae (eccentric)','Multifidus'],
+secondary:['Hip flexors','Adductors','Serratus anterior'],
+props:[
+  {tool:'ball',name:'Small ball between hands and shins',for:['flatback','military'],tip:'Holding a small ball between the hands and shins while in the C-curve helps maintain the round shape and provides tactile feedback for a consistent curve during the roll. Useful for clients who tend to straighten on the inhale roll-back.'}
+],
+postures:{
+  kyphosis:'Contraindicated or significantly modified. Rolling loads the thoracic kyphosis. Avoid or use very small rocking range only.',
+  lordosis:'Therapeutic spinal massage. Maintain C-curve on both the inhale roll-back and exhale roll-forward.',
+  flatback:'Articulation benefit. Use gentle small rocking to build mobility. Breath rhythm drives the pace.',
+  military:'Careful — avoid cervical compression at top of the inhale roll-back. Control range.',
+  swayback:'Avoid — promotes posterior tilt and thoracic rounding pattern. Substitute Spine Stretch Forward.'
+}},
+
+{name:'Single Leg Stretch',layer:'layer1',reps:'8–10',
+start:'<strong>Supine</strong>, head and thoracic spine curled up in a C-curve. One knee drawn into chest (inside hand on ankle, outside hand on knee). Other leg extended at ~45–60°. Pelvis neutral or gentle imprint.',
+inhale:'Inhale laterally for 2 counts — one complete leg switch (right draw in / left extend)',
+exhale:'Engage TA → 2 counts; next leg switch; TA deepens with each exhale beat',
+bnote:'Continuous 2:2 rhythm — no breath holding. The exhale deepens TA engagement during each switch. Keep the pelvis completely still and the spine in the C-curve shape. Do not allow the spine to twist or pelvis to rock during the switch.',
+primary:['Transversus abdominis','Rectus abdominis','Psoas major & minor','Iliacus','Rectus femoris'],
+secondary:['Gluteus maximus','Hamstrings','External oblique'],
+props:[
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'Allows the client to maintain the curl-up with less cervical strain — reduces neck flexor demand. Head can also lower to mat while maintaining the 2:2 breath and TA engagement.'},
+  {tool:'band',name:'Flex band around extended foot',for:['kyphosis','swayback'],tip:'Loop the band around the foot of the extended leg. Keeps the leg at a higher angle (reducing hip flexor load) and allows focus on pelvic stability and breathing rhythm.'}
+],
+postures:{
+  kyphosis:'Support the head. Reduce curl-up height. Focus on TA control and pelvic stability over height. 2:2 breathing with stable pelvis is the goal.',
+  lordosis:'Excellent. Coordinate exhale TA deepening with each switch. Imprint as needed.',
+  flatback:'Neutral pelvis. Avoid posterior tilt. Table-top start reduces the hip flexor load.',
+  military:'Head support. Neutral pelvis. Smooth 2:2 breath pattern and minimal lumbar substitution.',
+  swayback:'Neutral pelvis — no imprint. Band around extended foot. 2:2 breath maintained.'
+}},
+
+{name:'Obliques',layer:'layer1',reps:'8–10',
+start:'<strong>Supine</strong>, head and thoracic spine curled up, hands lightly behind head, elbows wide. Pelvis neutral or gentle imprint. Legs in table-top or one leg extended.',
+inhale:'Inhale laterally to prepare — lengthen and open through the thoracic spine; return to centre if needed',
+exhale:'Engage TA → rotate the ribcage toward the opposite knee; ribcage rotates on a stable pelvis',
+bnote:'Inhale to return to centre. The exhale TA stabilises first, then the oblique rotation initiates — not the head or elbow. Do not pull on the neck. The pelvis must not rotate during the exhale curl and twist.',
+primary:['External oblique','Internal oblique','Rectus abdominis','Transversus abdominis'],
+secondary:['Serratus anterior','Rotatores','Longus colli'],
+props:[
+  {tool:'band',name:'Flex band around lower ribcage',for:['kyphosis','lordosis'],tip:'On the exhale rotation, cue the client to feel the ribs narrow and rotate into the band. Prevents rib flare and reinforces that the rotation is thoracic rather than cervical or lumbar.'},
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'Reduces cervical demand in the curl-up position. Allows focus on thoracic rotation rather than neck strain.'}
+],
+postures:{
+  kyphosis:'Reduce rotation amplitude. Exhale TA then rotation. Avoid excessive cervical and thoracic flexion. Rotation is thoracic — not a neck curl.',
+  lordosis:'Rotational abdominal work is excellent. Exhale TA then rotate — may include gentle imprint to protect lumbar.',
+  flatback:'Small range rotation. Neutral pelvis. Avoid forcing movement. Focus on thoracic rotation quality.',
+  military:'Reduce cervical loading. Exhale TA then rotate from the ribcage — neck does not initiate.',
+  swayback:'Neutral pelvis — no imprint. Limit range initially. Exhale TA stabilises first, then thoracic rotation.'
+}},
+
+// ══════════════════════════════════════════════════════
+// LAYER 2
+// ══════════════════════════════════════════════════════
+{name:'Double Leg Stretch',layer:'layer2',reps:'5–10',
+start:'<strong>Supine</strong>, head and thoracic spine curled up, both knees drawn into chest. Hands on shins. Pelvis neutral or gentle imprint.',
+inhale:'Inhale laterally — arms reach overhead, legs extend away simultaneously; full open expansion (TA lightly maintained)',
+exhale:'Engage TA → circle arms back and draw knees in; TA deepens as limbs return',
+bnote:'Inhale = open/extend phase; exhale = gather/close phase. TA maintained throughout but deepens on the exhale gathering. Lower back must stay anchored during the inhale extension — do not allow the lumbar to arch away from neutral.',
+primary:['Transversus abdominis','Rectus abdominis','Psoas major & minor','Iliacus','Deltoid'],
+secondary:['Serratus anterior','Triceps brachii','Gluteus maximus'],
+props:[
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback','military'],tip:'On the gathering exhale, squeezing the ball as knees draw in activates the adductors and reinforces pelvic neutral. Prevents hip separation during the inhale extension phase.'},
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'Reduces neck strain in the curl-up position. Allows focus on 5:5 breathing rhythm and limb coordination.'}
+],
+postures:{
+  kyphosis:'Keep legs at table-top on inhale extension. Support head. Reduce arm reach to avoid thoracic collapse.',
+  lordosis:'Moderate leg angle on the inhale. Imprint. Excellent abdominal coordination and control.',
+  flatback:'Neutral pelvis. Bend knees more during inhale extension if lower back lifts.',
+  military:'Head support. Moderate range on both phases.',
+  swayback:'Neutral pelvis only — no imprint. Higher leg angle on inhale extension to reduce hip flexor demand.'
+}},
+
+{name:'Scissors',layer:'layer2',reps:'8–10',
+start:'<strong>Supine</strong>, head and thoracic spine curled up. Both legs extended toward ceiling. Lower one leg to ~45–60°. Hands hold the upper leg (behind calf or thigh). Pelvis square and neutral.',
+inhale:'Inhale laterally for 2 counts — scissors position held or one switch',
+exhale:'Engage TA → 2 counts as legs switch; TA deepens to stabilise the pelvis during the switch',
+bnote:'Continuous 2:2 breathing. The pelvis must not move during the switch — tilt and rotation both stabilised by exhale TA. Both legs stay long and the spine remains in the C-curve.',
+primary:['Psoas major & minor','Iliacus','Rectus femoris','Hamstrings'],
+secondary:['Transversus abdominis','Gluteus maximus','Adductors'],
+props:[
+  {tool:'towel',name:'Rolled towel under occiput',for:['kyphosis','military'],tip:'Reduces neck strain in the sustained curl-up. Allows focus on pelvic stability and 2:2 breathing rhythm.'}
+],
+postures:{
+  kyphosis:'Support head. Neutral pelvis. Focus on pelvic stability over curl-up height.',
+  lordosis:'Imprint pelvis. Exhale TA deepens as legs switch. Excellent hip flexor and abdominal coordination.',
+  flatback:'Neutral pelvis. Avoid posterior tilt during switch. Higher leg angle for both legs.',
+  military:'Head support. Minimal lumbar substitution. Smooth 2:2 rhythm.',
+  swayback:'Neutral pelvis only. Higher resting leg angle. No imprint. 2:2 breath maintained.'
+}},
+
+{name:'Shoulder Bridge Prep',layer:'layer2',reps:'3–6',
+start:'<strong>Supine</strong>, neutral spine, knees bent hip-width, feet flat. Arms long by sides, palms down. Equal weight through both feet. Same start as Hip Rolls but with greater range.',
+inhale:'Inhale laterally to prepare in neutral supine',
+exhale:'Engage TA → tailbone lifts, sacrum, then each lumbar vertebra peels off the mat; glutes engage as bridge reaches full height',
+bnote:'Inhale at the top. Exhale to articulate back down — sternum, ribs, each lumbar vertebra returns. TA stabilises before movement begins. Inner thighs gently engaged throughout to maintain leg alignment.',
+primary:['Gluteus maximus','Hamstrings','Transversus abdominis','Multifidus'],
+secondary:['Gluteus medius','Erector spinae','Adductors'],
+props:[
+  {tool:'ball',name:'Small ball between knees',for:['lordosis','flatback','military','swayback'],tip:'Squeezing the ball throughout the entire bridge maintains neutral pelvic alignment and prevents knee separation during articulation.'},
+  {tool:'band',name:'Flex band around lower thighs',for:['swayback','lordosis'],tip:'Provides external resistance for hip abductor engagement — prevents knees from collapsing and reinforces neutral pelvic alignment through the bridge.'}
+],
+postures:{
+  kyphosis:'Safe and beneficial — opens the anterior chest and hip flexors in the bridge position.',
+  lordosis:'Moderate height. Exhale TA before the lift ensures anterior pelvic tilt is controlled throughout.',
+  flatback:'Restores lumbar extension in bridge position. Exhale articulation re-educates lumbar segmental movement.',
+  military:'Develops posterior chain activation. Exhale articulation — avoid hyperextending the lumbar at top.',
+  swayback:'Moderate height only. Exhale articulation should not push into excessive lumbar extension.'
+}},
+
+{name:'Roll Over Prep',layer:'layer2',reps:'6–8',
+start:'<strong>Supine</strong>, neutral spine, legs extended toward ceiling (perpendicular to floor or slightly angled). Arms long by sides, palms pressing gently into mat.',
+inhale:'Inhale laterally to prepare — legs reach toward the ceiling',
+exhale:'Engage TA deeply → hips roll overhead; spine articulates off the mat segment by segment',
+bnote:'Inhale at top (hips over shoulders). Exhale to roll back down with control, vertebra by vertebra. Weight stays on upper back and shoulders — never on the cervical spine. TA must be fully engaged before hips leave the mat.',
+primary:['Rectus abdominis','Transversus abdominis','Hip flexors','Erector spinae (eccentric)'],
+secondary:['Latissimus dorsi','Deltoid','Gluteus maximus'],
+props:[],
+postures:{
+  kyphosis:'Contraindicated — significant thoracic loading in inversion. Avoid entirely.',
+  lordosis:'Beneficial for abdominal strength and lumbar articulation. Full exhale TA engagement before rolling.',
+  flatback:'Use reduced range only. Exhale articulation benefits flat-back clients.',
+  military:'Reduce range. Avoid cervical loading. Exhale TA fully engaged before initiating.',
+  swayback:'Caution — can reinforce posterior tilt. Very small range only with deep exhale TA engagement.'
+}},
+
+{name:'Heel Squeeze Prone',layer:'layer2',reps:'8–10',
+start:'<strong>Prone</strong>, neutral spine. Forehead resting on stacked hands. Legs extended, feet hip-width or slightly turned out. Pelvis in neutral on the mat.',
+inhale:'Inhale into the posterior ribcage — feel the ribs expand into the mat',
+exhale:'Engage TA lightly → squeeze the heels together; glutes and adductors contract isometrically',
+bnote:'Inhale to release. The exhale TA stabilisation precedes the isometric glute and adductor contraction. The spine does not move. Keep lower abdominals engaged throughout to protect the lumbar.',
+primary:['Gluteus maximus','Hamstrings','Adductors'],
+secondary:['Multifidus','Erector spinae','Piriformis'],
+props:[
+  {tool:'ball',name:'Small ball between heels',for:['lordosis','flatback','military'],tip:'Gives the client something to squeeze against on the exhale — provides feedback for correct activation and makes the adductor engagement more accessible and palpable.'}
+],
+postures:{
+  kyphosis:'Prone position opens the chest. Posterior ribcage breathing is excellent. Good foundational prone exercise.',
+  lordosis:'Exhale TA before the squeeze prevents lumbar hyperextension. Keep pelvis on the mat.',
+  flatback:'Excellent — glute and hamstring activation with lumbar in a supported neutral position.',
+  military:'Good posterior chain work without spinal loading. Exhale → engage.',
+  swayback:'Highly appropriate — glute activation without lumbar stress. Exhale TA before squeezing.'
+}},
+
+{name:'One Leg Kick Prep',layer:'layer2',reps:'5–8 each side',
+start:'<strong>Prone</strong> on forearms or with forehead on hands. Elbows under shoulders (forearm support). Legs extended hip-width, pelvis neutral. Alternatively prone prop-up with hands under shoulders.',
+inhale:'Inhale into the posterior ribcage to prepare',
+exhale:'Engage TA → double-kick the heel toward the glute (two short pulse exhales); TA active throughout both pulses',
+bnote:'Inhale as the leg lowers back down; switch sides. The double-kick on the exhale is the STOTT pattern. The pelvis must stay square — no hip hiking on the kicking side. Exhale TA precedes and maintains through both pulse kicks.',
+primary:['Hamstrings (biceps femoris, semitendinosus, semimembranosus)','Gluteus maximus','Multifidus'],
+secondary:['Erector spinae','Rectus femoris (eccentric/stretch)','Tibialis anterior'],
+props:[
+  {tool:'towel',name:'Rolled towel under forehead',for:['kyphosis','military'],tip:'Provides cervical support in the forehead-on-hands position and allows the client to relax the neck while focusing on the exhale TA → kick pattern.'}
+],
+postures:{
+  kyphosis:'Prone extension is beneficial. Exhale TA → kick. Support head in neutral. Avoid cervical strain.',
+  lordosis:'Limit lumbar extension. Exhale TA before each kick prevents lumbar arching. Let the hamstring drive the movement.',
+  flatback:'Good lumbar extension stimulus. Exhale TA → double kick. Moderate range.',
+  military:'Appropriate prone exercise. Avoid neck compression in forearm support position.',
+  swayback:'Appropriate glute/hamstring work. Exhale TA before each kick monitors lumbar arch.'
+}},
+
+{name:'Breast Stroke',layer:'layer2',reps:'5–8',
+start:'<strong>Prone</strong>, neutral spine. Hands beside the ribcage, elbows bent and close to sides. Forehead resting on the mat. Legs extended hip-width. Glutes lightly engaged.',
+inhale:'Inhale to extend — chest lifts, arms sweep back to sides, spine extends from thorax through cervical; gaze forward and slightly down',
+exhale:'Engage TA → lower back to prone with control; spine returns to neutral',
+bnote:'In full Breast Stroke the inhale drives the extension (opposite to the Preps, where the exhale initiates). Keep neck long on the inhale — lead with the crown of the head. Scapulae retract and depress on the inhale. Exhale TA then lower controls the return.',
+primary:['Erector spinae','Multifidus','Trapezius (middle & lower)','Rhomboid major & minor','Gluteus maximus'],
+secondary:['Latissimus dorsi','Deltoid (posterior)','Triceps brachii'],
+props:[
+  {tool:'ball',name:'Small ball under abdomen',for:['lordosis'],tip:'Place just below the navel. The exhale TA on the return should gently lift the abdomen away from the ball — confirms TA engagement and prevents lumbar hyperextension on the inhale extension.'},
+  {tool:'barrel',name:'Arc barrel under abdomen',for:['kyphosis'],tip:'Position the apex of the arc barrel under the lower ribcage and abdomen. The barrel pre-positions the thoracic spine in partial extension so the inhale extension lift can access thoracic range that is unavailable on the flat mat. The arc also naturally limits lumbar extension range. Progress from all three Breast Stroke Preps on the barrel before attempting full Breast Stroke.'}
+],
+postures:{
+  kyphosis:'Highly beneficial — inhale extension directly addresses thoracic kyphosis. Arc barrel is the key prop. Progress from preps on barrel.',
+  lordosis:'Limit lumbar extension at peak inhale. Emphasise thoracic extension and scapular retraction.',
+  flatback:'Excellent — inhale extension restores spinal curves through the full spine.',
+  military:'Good. Exhale TA then lower with control. Avoid hyperextending at end of inhale range.',
+  swayback:'Thoracic extension focus on inhale. Exhale TA before lowering limits lumbar contribution.'
+}},
+
+{name:'Saw',layer:'layer2',reps:'3–5 each side',
+start:'<strong>Seated</strong> tall, legs extended wide (wider than hip-width). Feet flexed. Arms reaching out to T. Sitting on sit bones with a neutral lumbar curve.',
+inhale:'Inhale laterally to sit tall and rotate toward one side — lengthen through the spine first',
+exhale:'Engage TA → reach the front hand toward the little toe — three short pulse exhales at end range, each deepening the stretch',
+bnote:'Inhale to return to upright centre. The three-pulse exhale is the STOTT pattern — each pulse deepens the oblique contraction and hamstring stretch simultaneously. Both sit bones grounded throughout the exhale reach.',
+primary:['External oblique','Internal oblique','Hamstrings','Erector spinae (eccentric)'],
+secondary:['Rotatores','Multifidus','Deltoid'],
+props:[
+  {tool:'towel',name:'Folded towel under sit bones',for:['flatback','swayback','lordosis'],tip:'Elevates the pelvis and makes tall sitting more accessible. More range available for thoracic rotation.'},
+  {tool:'band',name:'Flex band under feet',for:['kyphosis','military'],tip:'Allows slight knee bend for clients with tight hamstrings — maintains the tall sitting position needed for effective exhale thoracic rotation without spinal rounding.'}
+],
+postures:{
+  kyphosis:'Sit very tall on inhale rotation. Exhale reach — maintain length throughout; avoid adding thoracic rounding to the reach.',
+  lordosis:'Neutral sitting pelvis on the inhale throughout. Exhale three-pulse saw is beneficial.',
+  flatback:'Excellent mobiliser — exhale rotation and hamstring stretch together address both mobility deficits.',
+  military:'Reduce forward reach to avoid thoracic compression at exhale end range.',
+  swayback:'Towel under sit bones. Avoid posterior pelvic collapse during the exhale forward reach.'
+}},
+
+{name:'Neck Pull Prep',layer:'layer2',reps:'5–8',
+start:'<strong>Supine</strong>, neutral spine, legs extended. Hands interlaced behind the head, elbows wide. Feet flexed.',
+inhale:'Inhale laterally to prepare — elbows wide, cervical in neutral',
+exhale:'Engage TA → nod the head, peel the spine forward and up to sitting; hands support but do not pull',
+bnote:'Inhale at top (sitting tall). Exhale to hinge forward over legs (flat-back hinge). Inhale to return upright. Exhale to roll back down — C-curve first, then each vertebra. Multiple breath cycles per rep. Hands are light guides, not active pullers.',
+primary:['Rectus abdominis','External & Internal oblique','Transversus abdominis'],
+secondary:['Erector spinae','Hip flexors','Longus colli'],
+props:[
+  {tool:'band',name:'Flex band under feet',for:['lordosis','flatback'],tip:'Holding the band ends while rolling up assists the articulation and reduces the load — makes the exercise accessible for clients who cannot yet perform it with hands behind head.'}
+],
+postures:{
+  kyphosis:'Significant flexion load — limit range. Exhale TA peel carefully to avoid compressing the thoracic kyphosis further.',
+  lordosis:'Beneficial. Exhale TA then peel. Controls lumbar articulation on the roll-back.',
+  flatback:'Reduce range. Avoid forcing posterior tilt on the exhale. Band assists.',
+  military:'Hands very light. Exhale TA then peel. Careful with cervical load.',
+  swayback:'Avoid — reinforces posterior tilt. Substitute half roll back with the exhale stabilise-then-peel breath pattern.'
+}},
+
+{name:'Obliques Roll Back',layer:'layer2',reps:'3–5 each side',
+start:'<strong>Seated</strong> tall on sit bones, knees bent, feet flat. Arms reaching forward at shoulder height. Neutral spine. Same start as Half Roll Back.',
+inhale:'Inhale laterally to sit tall — lengthen and open through the thorax',
+exhale:'Engage TA → rotate and roll back obliquely; TA and obliques co-activate; movement is diagonal not lateral',
+bnote:'Inhale to roll back up to sitting and return to centre. The exhale drives both the rotation and roll-back simultaneously. Keep the pelvis square on the mat — the opposite hip must not lift.',
+primary:['External oblique','Internal oblique','Rectus abdominis','Rotatores'],
+secondary:['Multifidus','Transversus abdominis','Serratus anterior'],
+props:[
+  {tool:'band',name:'Flex band under feet',for:['kyphosis','lordosis','flatback'],tip:'As in Half Roll Back, the band provides support and feedback for the return to tall sitting after the oblique roll-back. Reduces hamstring tension that can limit the seated start position.'}
+],
+postures:{
+  kyphosis:'Reduce range. Exhale TA → rotation is beneficial but limit the flexion component.',
+  lordosis:'Good rotational abdominal challenge. Exhale controls the roll-back with TA.',
+  flatback:'Mobility and strength benefit. Moderate range on the exhale diagonal.',
+  military:'Small range. Watch cervical compensation on the exhale roll.',
+  swayback:'Neutral start position. Reduce range. Exhale TA is the key stabiliser.'
+}},
+
+{name:'Side Kick',layer:'layer2',reps:'8–10 each side',
+start:'<strong>Side-lying</strong>, hips stacked and perpendicular to mat. Bottom arm extended under head or bent, top hand on mat in front. Neutral spine. Legs long, slightly in front of body (~10–15° hip flexion).',
+inhale:'Inhale for double pulse — kick the top leg forward (inhale, inhale)',
+exhale:'Engage TA → swing the leg back behind the hip line (single exhale)',
+bnote:'Double inhale forward / single exhale back is the STOTT pattern. TA is engaged and maintained throughout both phases. The spine must stay completely still — neither pelvis nor ribcage moves with the leg.',
+primary:['Gluteus medius & minimus','TFL','Hip adductors','Psoas major & minor'],
+secondary:['Transversus abdominis','Multifidus','Quadratus lumborum'],
+props:[
+  {tool:'band',name:'Flex band around ankles',for:['kyphosis','lordosis'],tip:'The band provides resistance and limits range on the exhale back-kick — prevents the top leg from going past neutral and the pelvis from rotating. Useful for clients who tend to over-extend into the lumbar on the back-kick.'}
+],
+postures:{
+  kyphosis:'Side-lying neutral spine. Good hip and core stability work. Double inhale / exhale pattern manageable.',
+  lordosis:'Monitor lumbar position in side-lying. Exhale back phase controls lumbar extension.',
+  flatback:'Side-lying allows neutral lumbar — very appropriate. Full breath pattern.',
+  military:'Side-lying neutral is beneficial. Double inhale forward / single exhale back with TA.',
+  swayback:'Maintain neutral pelvis in side-lying throughout the breath cycle. TA before the kick back.'
+}},
+
+{name:'Side Leg Lift Series 1–5',layer:'layer2',reps:'5–10',
+start:'<strong>Side-lying</strong>, hips stacked, spine in neutral. Bottom arm extended or bent. Top hand on mat in front for support. Legs long. Same foundation as Side Kick.',
+inhale:'Inhale to prepare or as the leg moves in the less demanding direction',
+exhale:'Engage TA → lift, circle, or flex the top leg against gravity; TA stabilises the pelvis against the moving leg',
+bnote:'Exhale on the effort (gravity-resisted) phase. For the basic lift: exhale to lift, inhale to lower. For circles: exhale on the upswing. Keep the waist long on both sides — the bottom waist does not collapse.',
+primary:['Gluteus medius','Gluteus minimus','TFL','Hip adductors'],
+secondary:['Piriformis','Transversus abdominis','Quadratus lumborum'],
+props:[
+  {tool:'band',name:'Flex band around ankles',for:['lordosis','military'],tip:'The band provides resistance on the exhale lift — strengthens hip abductors with more challenge while keeping the pelvis stable.'}
+],
+postures:{
+  kyphosis:'Side-lying neutral — safe and beneficial for hip stability and lateral line strength.',
+  lordosis:'Excellent hip stabiliser work. Exhale TA before lift maintains pelvic neutral against the leg load.',
+  flatback:'Very appropriate. Exhale effort is clear and well tolerated.',
+  military:'Good lateral hip work without spinal loading.',
+  swayback:'Hip stability work is helpful. Exhale TA before lift; neutral pelvis maintained.'
+}},
+
+{name:'Teaser Prep',layer:'layer2',reps:'3–5',
+start:'<strong>Supine</strong>, neutral spine. Legs in table-top (Prep) or extended at 45°. Arms reaching overhead or by sides.',
+inhale:'Inhale laterally to prepare',
+exhale:'Engage TA deeply → roll up into the V-position; spine curls and legs lift simultaneously; arms reach parallel to legs',
+bnote:'Inhale to hold the Teaser balance. Exhale to roll back down with control — spine first, then legs lower. The exhale must be sustained and deep throughout the roll-up phase. Do not hold the breath on the balance.',
+primary:['Rectus abdominis','Transversus abdominis','Psoas major & minor','Iliacus','Erector spinae (eccentric)'],
+secondary:['External oblique','Serratus anterior','Deltoid'],
+props:[
+  {tool:'band',name:'Flex band under feet',for:['lordosis','flatback'],tip:'In seated, holding the band while performing a half-roll-back-to-teaser sequence gives support for the return — allows focus on the exhale TA engagement and the roll rather than the balance challenge.'}
+],
+postures:{
+  kyphosis:'Contraindicated — significant spinal flexion and hip flexor demand. Substitute half roll back.',
+  lordosis:'Bent knees modification. Exhale TA deeply before rolling up.',
+  flatback:'Reduce range. Bent knees. Avoid forcing posterior tilt on the exhale.',
+  military:'Reduce range significantly. Support with hands or bent knees.',
+  swayback:'Avoid — reinforces kyphosis and posterior tilt pattern.'
+}},
+
+{name:'Single Leg Extension',layer:'layer2',reps:'6–8 each side',
+start:'<strong>Quadruped</strong>, hands under shoulders, knees under hips. Neutral spine. Or <strong>prone</strong>, neutral spine. Pelvis level and neutral.',
+inhale:'Inhale laterally to prepare in quadruped or prone neutral',
+exhale:'Engage TA → extend the leg; TA stabilises the lumbar spine as the hip extends and the leg floats',
+bnote:'Inhale to return the leg with control. The exhale TA engagement before the extension protects the lumbar from hyperextending as the hip extends. Pelvis must stay level — no hip hiking or lumbar rotation.',
+primary:['Rectus femoris','Vastus medialis, intermedius & lateralis','Gluteus maximus'],
+secondary:['Hamstrings','Transversus abdominis','Multifidus'],
+props:[
+  {tool:'ball',name:'Small ball on lower back',for:['lordosis','military','swayback'],tip:'Place the ball on the lumbar region in quadruped. If the ball rolls off during the exhale leg extension, the pelvis has tilted or the lumbar has shifted — immediate biofeedback for neutral spine maintenance.'}
+],
+postures:{
+  kyphosis:'Quadruped — beneficial. Watch cervical position. Exhale TA engagement is key.',
+  lordosis:'Exhale TA before extension is essential — prevents lumbar hyperextension as the hip extends.',
+  flatback:'Good hip extension work. Exhale TA stabilisation appropriate.',
+  military:'Exhale TA before extending — avoid lumbar hyperextension on the working side.',
+  swayback:'Appropriate glute/leg work. Ball on lumbar gives immediate feedback for neutral.'
+}},
+
+// ══════════════════════════════════════════════════════
+// LAYER 3
+// ══════════════════════════════════════════════════════
+{name:'Swan Dive Prep',layer:'layer3',reps:'5–8',
+start:'<strong>Prone</strong>, neutral spine. Hands beside the lower ribcage, elbows bent close to the body. Legs extended hip-width, toes pointed. Forehead resting on the mat.',
+inhale:'Inhale laterally to press up into full Swan — spine extends from the thorax upward; chest opens; arms lengthen',
+exhale:'Engage TA → lower back to prone with control; spine returns to neutral',
+bnote:'Keep neck long on inhale extension — gaze forward and slightly down. Scapulae retract and depress on the inhale. Glutes engage to protect the lumbar. For the Dive variation: inhale to rock forward onto the chest, exhale TA then rock back.',
+primary:['Erector spinae','Multifidus','Gluteus maximus','Trapezius (middle & lower)'],
+secondary:['Rhomboid major & minor','Deltoid (posterior)','Semispinalis'],
+props:[
+  {tool:'ball',name:'Small ball under abdomen',for:['lordosis'],tip:'Place below the navel. On the exhale return the client should feel the abdomen gently lift away from the ball — confirms TA engagement and prevents lumbar hyperextension at the bottom of the inhale Swan.'},
+  {tool:'barrel',name:'Arc barrel under abdomen',for:['kyphosis','flatback'],tip:'Position the apex of the arc barrel under the lower ribcage and abdomen. The barrel pre-positions the thoracic spine in partial extension so the inhale Swan extension can begin from a more neutral spinal position rather than from full kyphotic flexion. This makes the exercise achievable and safe at an earlier stage. For the Swan Dive rocking variation, the barrel provides a natural rocking arc — the client rocks with the barrel\'s curve, reducing spinal compression while maintaining the extension challenge.'}
+],
+postures:{
+  kyphosis:'Excellent — inhale extension directly and progressively addresses thoracic kyphosis. Arc barrel is the key prop. Build range over multiple sessions.',
+  lordosis:'Limit peak extension on inhale. Emphasise thoracic, not lumbar. Ball under abdomen provides feedback.',
+  flatback:'Highly beneficial — inhale extension restores spinal curves through full range. Arc barrel useful.',
+  military:'Good. Exhale TA then lower with control. Avoid lumbar hyperextension at peak inhale.',
+  swayback:'Thoracic extension focus on inhale. Exhale TA before lowering limits lumbar contribution.'
+}},
+
+{name:'Swimming Prep',layer:'layer3',reps:'2–4 sets',
+start:'<strong>Prone</strong>, neutral spine. Arms reaching forward on the mat (shoulder-width). Legs extended hip-width, toes pointed. Forehead toward the mat or slightly lifted.',
+inhale:'Inhale for 5 counts — alternating arm and leg lifts while breathing in; TA maintained throughout',
+exhale:'Engage TA → continue alternating arm and leg lifts while breathing out for 5 counts',
+bnote:'Continuous 5:5 breathing — identical to the Hundred rhythm but in prone extension. Never hold the breath. The sustained breath pattern challenges endurance while maintaining spinal extension and pelvic stability.',
+primary:['Erector spinae','Multifidus','Gluteus maximus','Deltoid','Trapezius (middle & lower)'],
+secondary:['Rhomboids','Hamstrings','Transversus abdominis'],
+props:[
+  {tool:'towel',name:'Rolled towel under forehead',for:['kyphosis','military'],tip:'Supports the head in a neutral position during the 5:5 breath pattern. Prevents cervical strain during the sustained exercise.'}
+],
+postures:{
+  kyphosis:'Excellent prone exercise. 5:5 pattern challenges thoracic extension endurance.',
+  lordosis:'Excellent — teaches spinal extension with stability. Monitor lumbar segment; exhale TA is key.',
+  flatback:'Good extension patterning. 5:5 breath restores thoracic mobility.',
+  military:'Appropriate. Reduce lumbar arc. 5:5 breath with TA is the focus.',
+  swayback:'Good thoracic and glute work. Monitor lumbar on both inhale and exhale phases.'
+}},
+
+{name:'Leg Pull Front Prep',layer:'layer3',reps:'3–6',
+start:'<strong>Prone plank</strong> on hands — hands under shoulders (slightly wider), legs extended hip-width, toes curled under. Spine in neutral plank — no sagging or piking. Scapulae in neutral.',
+inhale:'Inhale laterally in plank — ribcage expands without disturbing spinal neutral',
+exhale:'Engage TA → lift one leg; glute activates; plank alignment maintained throughout',
+bnote:'Inhale to lower the leg back to plank. The exhale TA precedes the leg lift to prevent the lumbar from sagging. Scapulae stable — no winging. Breathe continuously; do not hold in the plank.',
+primary:['Transversus abdominis','Serratus anterior','Gluteus maximus','Deltoid (anterior)'],
+secondary:['Triceps brachii','Pectoralis major (sternal & clavicular)','Rectus femoris'],
+props:[
+  {tool:'ball',name:'Small ball on lower back',for:['lordosis','military','swayback'],tip:'Place on the lumbar in plank. If it rolls off on the exhale lift the hips have sagged — instant feedback for neutral plank alignment throughout.'},
+  {tool:'band',name:'Flex band around wrists',for:['kyphosis'],tip:'Loop the band loosely around both wrists in plank. Provides proprioceptive feedback for hand position and cues serratus anterior engagement — important for kyphosis clients who tend to lose scapular stability in the plank.'}
+],
+postures:{
+  kyphosis:'Modified plank — cue scapular stability throughout. Exhale leg lift must not cause thoracic collapse or scapular winging.',
+  lordosis:'Good full-body integration. Neutral spine on both inhale plank hold and exhale leg lift. Ball on lumbar.',
+  flatback:'Plank position is neutral — appropriate. Exhale lift manageable.',
+  military:'Good integration. Exhale TA → lift. Avoid lumbar hyperextension. Ball on lumbar.',
+  swayback:'Plank forces neutral alignment — helpful for pattern retraining. Exhale to lift.'
+}},
+
+{name:'Seal',layer:'layer3',reps:'8–10',
+start:'<strong>Seated</strong> in C-curve balance, same as Rolling Like a Ball. Hands thread through the legs to hold the outside of the ankles. Soles of feet together. Pelvis balanced on the back of the sit bones.',
+inhale:'Inhale to roll back to shoulder blade level — maintain the C-curve',
+exhale:'Engage TA → roll forward and balance on the sit bones; clap feet 3 times at each end',
+bnote:'Never roll onto the cervical spine. The 3-clap at each end is the STOTT-specific detail. C-curve shape must remain consistent throughout the entire breath cycle.',
+primary:['Transversus abdominis','Rectus abdominis','Hip adductors','Erector spinae (eccentric)'],
+secondary:['Hip flexors','Multifidus','Serratus anterior'],
+props:[],
+postures:{
+  kyphosis:'Contraindicated — deep spinal flexion and rolling loads the kyphotic thoracic. Avoid.',
+  lordosis:'Maintain C-curve on both inhale roll-back and exhale roll-forward. Beneficial.',
+  flatback:'Articulation benefit. Use careful breath-paced rhythm.',
+  military:'Reduce range; avoid cervical compression at top of inhale roll-back.',
+  swayback:'Avoid — reinforces kyphosis and posterior pelvic tilt.'
+}},
+
+{name:'Side Bend Prep',layer:'layer3',reps:'3–5 each side',
+start:'<strong>Side-sitting</strong>, bottom knee bent, top leg extended (or both bent). Bottom hand directly under shoulder. Hips stacked. Spine in neutral lateral alignment.',
+inhale:'Inhale laterally to prepare',
+exhale:'Engage TA → lift the hips off the mat; full lateral line — from ankle through hip to shoulder — becomes one diagonal',
+bnote:'Inhale to hold. Exhale to lower with control. The exhale TA precedes the lateral lift against gravity. Keep the waist long on both sides — the bottom waist does not collapse.',
+primary:['Quadratus lumborum','External & Internal oblique','Serratus anterior','Gluteus medius'],
+secondary:['Transversus abdominis','Latissimus dorsi','TFL'],
+props:[
+  {tool:'ball',name:'Small ball between feet (stacked)',for:['kyphosis','lordosis','flatback'],tip:'Stack the feet with the ball between them. Squeezing the ball on the exhale lift activates the adductors and prevents the feet from slipping — provides a stable base and cues the lower body engagement.'}
+],
+postures:{
+  kyphosis:'Lateral line work — excellent for improving lateral stability and counterbalancing kyphotic patterns.',
+  lordosis:'Good lateral strengthening. Exhale TA before lift avoids lumbar lateral compression.',
+  flatback:'Excellent — lateral line work restores 3D spinal mobility.',
+  military:'Appropriate lateral strengthening. Exhale TA before lift.',
+  swayback:'Good lateral stability work. Exhale TA before lift maintains neutral pelvis.'
+}},
+
+{name:'Push Up Prep',layer:'layer3',reps:'3–5',
+start:'<strong>Standing</strong> at the end of the mat, neutral spine. Inhale to prepare, exhale to hinge forward and walk out to <strong>plank</strong> (hands under shoulders, spine neutral). Or start directly in a modified plank (knees down).',
+inhale:'Inhale to lower toward the mat — elbows bend and track close to body; spine stays in neutral',
+exhale:'Engage TA → push back up to plank; pectorals and triceps concentrically contract',
+bnote:'Exhale on the push (exertion phase) — consistent with STOTT\'s exhale-on-effort principle. This is opposite to many conventional gym cues. Keep scapulae stable throughout. Do not allow lumbar to sag or hips to hike on the inhale lower.',
+primary:['Pectoralis major (sternal & clavicular)','Deltoid (anterior)','Triceps brachii','Serratus anterior'],
+secondary:['Transversus abdominis','Coracobrachialis','Subscapularis'],
+props:[
+  {tool:'ball',name:'Small ball on lower back',for:['lordosis','military','swayback'],tip:'Ball on the lumbar in plank/push-up position. If it falls on the inhale lower the hips have sagged — feedback for maintaining neutral plank throughout both phases.'},
+  {tool:'band',name:'Flex band around upper arms',for:['kyphosis'],tip:'Place the band just above the elbows. On the exhale push-up the band provides proprioceptive feedback for keeping elbows tracking close to the body — reduces pectoral shortening and emphasises scapular stability.'}
+],
+postures:{
+  kyphosis:'Caution — strengthens already short pectorals. Exhale push emphasises scapular retraction and thoracic extension. Band around upper arms is important.',
+  lordosis:'Good upper body strength. Neutral spine on both inhale lower and exhale push.',
+  flatback:'Appropriate. Maintain slight lumbar curve on the inhale lower phase.',
+  military:'Good upper body work. Exhale push — avoid scapular protraction at the top.',
+  swayback:'Modified plank keeps alignment neutral. Exhale push with TA maintains thoracic alignment.'
+}},
+
+{name:'Spine Stretch Forward',layer:'layer3',reps:'3–5',
+start:'<strong>Seated</strong> tall, legs extended in front, feet flexed (hip-width or together). Arms reaching forward at shoulder height. Sitting on sit bones with neutral lumbar curve.',
+inhale:'Inhale laterally to sit tall — lengthen through the crown of the head; grow the spine',
+exhale:'Engage TA → reach forward — spine articulates into a C-curve; navel draws in; crown leads forward and down',
+bnote:'Inhale to return to tall sitting. The exhale is an abdominal scoop forward — not simply a hip hinge. The spine should articulate segment by segment. Keep both sit bones grounded on the exhale.',
+primary:['Erector spinae (eccentric/stretch)','Hamstrings','Transversus abdominis'],
+secondary:['Rhomboids (eccentric)','Multifidus (eccentric)','Rectus abdominis'],
+props:[
+  {tool:'towel',name:'Folded towel under sit bones',for:['flatback','swayback','lordosis'],tip:'Elevates the pelvis into slight anterior tilt — makes the tall inhale sitting more accessible and allows greater exhale forward reach without the pelvis collapsing into posterior tilt.'},
+  {tool:'band',name:'Flex band under feet',for:['kyphosis','military','flatback'],tip:'Hold the band ends while reaching forward on the exhale. Provides gentle traction and supports articulation. Also provides hamstring stretch for clients with tight hamstrings.'},
+  {tool:'barrel',name:'Arc barrel — seated on down slope',for:['kyphosis'],tip:'Seat the client on the down slope of the arc barrel. The barrel\'s anterior pelvic tilt support makes the inhale tall far more accessible for kyphosis clients — the therapeutic phase for this posture type is the inhale lengthening, not the exhale reach. The barrel allows the client to experience a neutral or slightly extended spine before any forward movement occurs.'}
+],
+postures:{
+  kyphosis:'Inhale very tall first — do not start in flexion. Gentle exhale reach only. Avoid adding to thoracic rounding. The inhale tall is the therapeutic phase for this posture type.',
+  lordosis:'Beneficial exhale stretch. Encourages posterior pelvic tilt and lumbar articulation.',
+  flatback:'Very beneficial — exhale reach and hamstring stretch together restore mobility. Towel under sit bones.',
+  military:'Inhale tall to maximum. Reduce exhale forward range — sit tall is the priority.',
+  swayback:'Towel under sit bones. Exhale hamstring stretch useful. Avoid collapsing into posterior tilt on the reach.'
+}},
+
+{name:'Spine Twist (advanced)',layer:'layer3',reps:'3–5 each side',
+start:'<strong>Seated</strong> tall, legs extended in front, feet flexed and together. Arms reaching out to a T. Sitting on sit bones, spine in neutral. Same start as Layer 1 Spine Twist.',
+inhale:'Inhale laterally to sit tall — grow through the crown; arms reach wide',
+exhale:'Engage TA → rotate the thoracic spine; three short pulse exhales at end range, each deepening the rotation',
+bnote:'Return on the inhale to centre. Three-pulse exhale is the same STOTT pattern as Layer 1 Spine Twist but with greater precision and range. Pelvis stays square; both sit bones grounded. Ribcage rotates on a stable pelvis and lumbar spine.',
+primary:['External oblique','Internal oblique','Rotatores longus & brevis','Multifidus'],
+secondary:['Semispinalis thoracis','Erector spinae','Serratus anterior'],
+props:[
+  {tool:'towel',name:'Folded towel under sit bones',for:['flatback','swayback','lordosis'],tip:'Elevates the pelvis making the inhale tall more accessible and the exhale rotation cleaner — the thoracic can rotate further when the pelvis is not restricted by posterior tilt.'},
+  {tool:'band',name:'Flex band under feet',for:['kyphosis','military'],tip:'Allows slight knee bend for tight hamstrings — maintains the tall inhale sitting position needed for effective three-pulse exhale thoracic rotation.'},
+  {tool:'barrel',name:'Arc barrel — seated on down slope',for:['kyphosis'],tip:'Seat the client on the down slope of the arc barrel. The barrel\'s curve supports the lumbar and pelvis in slight anterior tilt — the client automatically sits taller, making both the inhale lengthening and the three-pulse exhale thoracic rotation far more accessible and effective for kyphosis clients.'}
+],
+postures:{
+  kyphosis:'Sit tall on inhale. Exhale TA → three-pulse rotation is the primary therapeutic goal. Very beneficial for thoracic mobility.',
+  lordosis:'Neutral sitting pelvis on inhale. Good rotational challenge. Full three-pulse exhale.',
+  flatback:'Highly beneficial — three-pulse exhale mobilises all thoracic segments.',
+  military:'Controlled exhale three-pulse rotation. Great for thoracic mobility.',
+  swayback:'Towel under sit bones. Sit upright on inhale; avoid posterior pelvic collapse on the exhale.'
+}}
+
+]; // end EX array
+
+const SECTIONS = [
+  {key:'warmup', label:'Warm-Up', tag:'tag-warmup', dot:'ld-warmup'},
+  {key:'layer1', label:'Layer 1 — Essential  ★ First 5 Sessions', tag:'tag-layer1', dot:'ld-layer1'},
+  {key:'layer2', label:'Layer 2 — Intermediate', tag:'tag-layer2', dot:'ld-layer2'},
+  {key:'layer3', label:'Layer 3 — Advanced', tag:'tag-layer3', dot:'ld-layer3'}
+];
+
+let activeLayer='all', activePosture=null;
+
+function renderAll(){
+  const cont=document.getElementById('exercise-container');
+  cont.innerHTML='';
+  SECTIONS.forEach(sec=>{
+    const exs=EX.filter(e=>e.layer===sec.key);
+    if(!exs.length) return;
+    const wrap=document.createElement('div');
+    wrap.dataset.section=sec.key;
+    const label=sec.key==='warmup'?'Warm-Up':sec.key.replace('layer','Layer ');
+    wrap.innerHTML=`<div class="section-header"><span class="section-tag ${sec.tag}">${label}</span><span class="section-title">${sec.label}</span><span class="section-line"></span></div><div class="exercise-grid" id="grid-${sec.key}"></div>`;
+    cont.appendChild(wrap);
+    const grid=wrap.querySelector('.exercise-grid');
+    exs.forEach(ex=>grid.appendChild(buildCard(ex,sec)));
+  });
+}
+
+function buildCard(ex,sec){
+  const card=document.createElement('div');
+  card.className='exercise-card';
+  card.dataset.layer=ex.layer;
+  card.dataset.name=ex.name.toLowerCase();
+
+  // posture indicators
+  const dots=Object.keys(PCOLORS).map(p=>`<span class="posture-indicator pi-${p} active" title="${PCOLORS[p].label}" data-posture="${p}"></span>`).join('');
+
+  // posture programming items
+  const postItems=Object.entries(ex.postures).map(([p,t])=>`<div class="posture-item ${PCOLORS[p].cls}"><strong>${PCOLORS[p].label}</strong>${t}</div>`).join('');
+
+  // props
+  let propsHtml;
+  if(ex.props && ex.props.length){
+    propsHtml=ex.props.map(pr=>{
+      const icon=PROP_ICONS[pr.tool]||'🔧';
+      const isBarrel=pr.tool==='barrel';
+      const pdots=pr.for.map(p=>`<span class="prop-posture-dot" style="background:${PDOTC[p]}" title="${PCOLORS[p]?PCOLORS[p].label:p}"></span>`).join('');
+      const forLabel=pr.for.map(p=>PCOLORS[p]?PCOLORS[p].label:p).join(' · ');
+      return `<div class="prop-item${isBarrel?' barrel-prop':''}"><div class="prop-tool"><span class="prop-icon">${icon}</span><div><div class="prop-name">${pr.name}</div><div class="prop-postures">${pdots}</div></div></div><div class="prop-right"><div class="prop-tip">${pr.tip}</div><div class="prop-for">For: ${forLabel}</div></div></div>`;
+    }).join('');
+  } else {
+    propsHtml='<div class="no-props">No specific prop modifications for this exercise.</div>';
+  }
+
+  // breath previews (trimmed)
+  const iP=ex.inhale.replace(/inhale( laterally)?( to prepare)? ?→? ?/i,'').replace(/^inhale /i,'').trim().slice(0,55);
+  const eP=ex.exhale.replace(/engage ta → /i,'TA → ').replace(/^exhale to /i,'').replace(/^exhale /i,'').trim().slice(0,55);
+
+  card.innerHTML=`
+    <div class="card-header" onclick="toggleCard(this.parentElement)">
+      <div class="card-left"><span class="layer-dot ${sec.dot}"></span><span class="exercise-name">${ex.name}</span></div>
+      ${ex.reps?`<span class="reps-badge">${ex.reps}</span>`:''}
+      <span class="expand-icon">+</span>
+    </div>
+    <div class="start-preview"><span class="sp-icon">📍</span><span class="sp-text">${ex.start.replace(/<[^>]*>/g,'').slice(0,70)}…</span></div>
+    <div class="breath-preview">
+      <span class="bp-pill bp-pill-in">🫁 ${iP}</span>
+      <span class="bp-arrow">→</span>
+      <span class="bp-pill bp-pill-out">💨 ${eP}</span>
+    </div>
+    <div class="posture-row">${dots}</div>
+    <div class="card-body">
+      <div class="card-section">
+        <div class="cs-label">📍 Starting Position</div>
+        <div class="start-section">${ex.start}</div>
+      </div>
+      <div class="card-section">
+        <div class="cs-label">🫁 STOTT Pilates Breathing</div>
+        <div class="breath-section">
+          <div class="breath-phases">
+            <div class="breath-phase breath-phase-in">
+              <div class="bpl bpl-in">↑ Inhale</div>
+              <div class="breath-phase-text">${ex.inhale}</div>
+            </div>
+            <div class="breath-phase breath-phase-out">
+              <div class="bpl bpl-out">↓ Exhale</div>
+              <div class="stabilise-tag">Stabilise first</div>
+              <div class="breath-phase-text">${ex.exhale}</div>
+            </div>
+          </div>
+          <div class="breath-note"><strong>Instructor note:</strong> ${ex.bnote}</div>
+        </div>
+      </div>
+      <div class="card-section">
+        <div class="cs-label">Primary Muscles</div>
+        <div class="muscle-list">${ex.primary.map(m=>`<span class="mtag">${m}</span>`).join('')}</div>
+      </div>
+      <div class="card-section">
+        <div class="cs-label">Secondary Muscles</div>
+        <div class="muscle-list">${ex.secondary.map(m=>`<span class="mtag sec">${m}</span>`).join('')}</div>
+      </div>
+      <div class="card-section">
+        <div class="cs-label">🛢️ Props &amp; Adjustments</div>
+        <div class="props-grid">${propsHtml}</div>
+      </div>
+      <div class="card-section">
+        <div class="cs-label">Programming by Postural Type</div>
+        <div class="posture-grid">${postItems}</div>
+      </div>
+    </div>`;
+  return card;
+}
+
+function toggleCard(c){ c.classList.toggle('expanded'); }
+
+function filterLayer(layer,btn){
+  activeLayer=layer;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.exercise-card').forEach(c=>c.classList.toggle('hidden', activeLayer!=='all' && c.dataset.layer!==activeLayer));
+  document.querySelectorAll('[data-section]').forEach(s=>{ s.style.display=s.querySelectorAll('.exercise-card:not(.hidden)').length===0?'none':''; });
+}
+
+function togglePosture(posture,badge){
+  if(activePosture===posture){
+    activePosture=null;
+    document.querySelectorAll('.posture-badge').forEach(b=>b.classList.remove('active'));
+  } else {
+    activePosture=posture;
+    document.querySelectorAll('.posture-badge').forEach(b=>b.classList.remove('active'));
+    badge.classList.add('active');
+  }
+  document.querySelectorAll('.posture-indicator').forEach(i=>i.classList.toggle('active',!activePosture||i.dataset.posture===activePosture));
+  if(activePosture){
+    document.querySelectorAll('.exercise-card').forEach(c=>c.classList.add('expanded'));
+    document.querySelectorAll('.posture-item').forEach(i=>i.style.opacity='0.15');
+    document.querySelectorAll(`.posture-item.${PCOLORS[activePosture].cls}`).forEach(i=>i.style.opacity='1');
+  } else {
+    document.querySelectorAll('.exercise-card').forEach(c=>c.classList.remove('expanded'));
+    document.querySelectorAll('.posture-item').forEach(i=>i.style.opacity='1');
+  }
+}
+
+function searchExercises(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('.exercise-card').forEach(c=>c.classList.toggle('hidden', q!==''&&!c.dataset.name.includes(q)&&!c.textContent.toLowerCase().includes(q)));
+}
+
+renderAll();
+</script>
+
+</body>
+</html>
