@@ -7,10 +7,10 @@ import type { Exercise, Favorite } from '@/lib/types'
 
 /* ─── colour maps ─── */
 const LAYER_COLORS: Record<string, string> = {
-  warmup: '#6b7280',
-  layer1: '#e8574a',
-  layer2: '#d4a017',
-  layer3: '#991b1b',
+  warmup: '#8a7a82',
+  layer1: '#a0607e',
+  layer2: '#c9943e',
+  layer3: '#7d4e6b',
 }
 const LAYER_LABELS: Record<string, string> = {
   warmup: 'Warm-Up',
@@ -19,30 +19,30 @@ const LAYER_LABELS: Record<string, string> = {
   layer3: 'Layer 3',
 }
 const LAYER_PASTELS: Record<string, string> = {
-  warmup: '#f3f4f6',
-  layer1: '#fef2f2',
-  layer2: '#fffbeb',
-  layer3: '#fef2f2',
+  warmup: '#f5f0ee',
+  layer1: '#f8eef3',
+  layer2: '#fdf5e8',
+  layer3: '#f3eaf0',
 }
 const LAYER_PASTEL_SELECTED: Record<string, string> = {
-  warmup: '#e5e7eb',
-  layer1: '#fecaca',
-  layer2: '#fde68a',
-  layer3: '#fca5a5',
+  warmup: '#e8e0dc',
+  layer1: '#f0d8e4',
+  layer2: '#f5e4c4',
+  layer3: '#e8d4e0',
 }
 const LAYER_PASTEL_BORDER: Record<string, string> = {
-  warmup: '#d1d5db',
-  layer1: '#f9a8a8',
-  layer2: '#f5d06e',
-  layer3: '#f08080',
+  warmup: '#d8ccc6',
+  layer1: '#e0b8cc',
+  layer2: '#e8cfa0',
+  layer3: '#d4b8c8',
 }
 const POSTURE_META: Record<string, { label: string; color: string }> = {
-  kyphosis: { label: 'Kyphosis-Lordosis', color: '#a855f7' },
-  kyphosis_only: { label: 'Kyphosis', color: '#7c3aed' },
-  lordosis: { label: 'Lordosis', color: '#f59e0b' },
-  flatback: { label: 'Flat Back', color: '#06b6d4' },
-  military: { label: 'Military', color: '#10b981' },
-  swayback: { label: 'Sway Back', color: '#ef4444' },
+  kyphosis: { label: 'Kyphosis-Lordosis', color: '#a0607e' },
+  kyphosis_only: { label: 'Kyphosis', color: '#7d4e6b' },
+  lordosis: { label: 'Lordosis', color: '#c9943e' },
+  flatback: { label: 'Flat Back', color: '#8a9a7a' },
+  military: { label: 'Military', color: '#6b8a7d' },
+  swayback: { label: 'Sway Back', color: '#b07060' },
 }
 
 const ALL_LAYERS = ['warmup', 'layer1', 'layer2', 'layer3'] as const
@@ -732,13 +732,13 @@ function ExerciseCard({
                 <div className="space-y-2">
                   {exercise.inhale && (
                     <div className="flex gap-3 items-start">
-                      <span className="mt-0.5 shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: '#3b82f620', color: '#3b82f6' }}>Inhale</span>
+                      <span className="mt-0.5 shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: '#7d8ab020', color: '#7d8ab0' }}>Inhale</span>
                       <p className="text-sm text-foreground/90">{exercise.inhale}</p>
                     </div>
                   )}
                   {exercise.exhale && (
                     <div className="flex gap-3 items-start">
-                      <span className="mt-0.5 shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: '#05966920', color: '#059669' }}>Exhale</span>
+                      <span className="mt-0.5 shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: '#6b8a7d20', color: '#6b8a7d' }}>Exhale</span>
                       <p className="text-sm text-foreground/90">{exercise.exhale}</p>
                     </div>
                   )}
@@ -754,7 +754,7 @@ function ExerciseCard({
                 <p className="text-xs text-muted mb-2">Click a muscle to find all exercises that target it</p>
                 <div className="flex flex-wrap gap-1.5">
                   {exercise.primary_muscles?.map((m) => (
-                    <button key={m} onClick={() => onMuscleClick(m)} className="text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all" style={{ backgroundColor: '#2d6a4f18', color: '#2d6a4f' }}>{m}</button>
+                    <button key={m} onClick={() => onMuscleClick(m)} className="text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all" style={{ backgroundColor: '#7d4e6b18', color: '#7d4e6b' }}>{m}</button>
                   ))}
                   {exercise.secondary_muscles?.map((m) => (
                     <button key={m} onClick={() => onMuscleClick(m)} className="text-xs font-medium px-2.5 py-1 rounded-full bg-black/5 text-muted cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all">{m}</button>

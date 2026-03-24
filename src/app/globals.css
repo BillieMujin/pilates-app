@@ -3,28 +3,28 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #FAFAF7;
+  --bg: #faf8f5;
   --surface: #ffffff;
-  --primary: #2d6a4f;
-  --primary-light: #40916c;
-  --secondary: #e8574a;
-  --text: #1a1510;
-  --text-muted: #6b7280;
-  --border: #e5e5e0;
+  --primary: #7d4e6b;
+  --primary-light: #a0607e;
+  --secondary: #c9943e;
+  --text: #2c1e28;
+  --text-muted: #8a7a82;
+  --border: #e8e0dc;
 
-  --warmup: #6b7280;
-  --layer1: #e8574a;
-  --layer2: #d4a017;
-  --layer3: #991b1b;
+  --warmup: #8a7a82;
+  --layer1: #a0607e;
+  --layer2: #c9943e;
+  --layer3: #7d4e6b;
 
-  --kyphosis: #a855f7;
-  --lordosis: #f59e0b;
-  --flatback: #06b6d4;
-  --military: #10b981;
-  --swayback: #ef4444;
+  --kyphosis: #a0607e;
+  --lordosis: #c9943e;
+  --flatback: #8a9a7a;
+  --military: #6b8a7d;
+  --swayback: #b07060;
 
-  --inhale: #3b82f6;
-  --exhale: #059669;
+  --inhale: #7d8ab0;
+  --exhale: #6b8a7d;
 
   --font-body: 'Inter', system-ui, sans-serif;
   --font-heading: 'Playfair Display', Georgia, serif;
