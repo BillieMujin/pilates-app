@@ -738,25 +738,7 @@ function ExerciseCard({
             )}
 
             {(exercise.inhale || exercise.exhale) && (
-              <Section title="Breathing">
-                <div className="space-y-2.5">
-                  {exercise.inhale && (
-                    <div className="flex gap-3 items-start">
-                      <span className="mt-0.5 shrink-0 text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#5a6b8a]/10 text-[#5a6b8a]">In</span>
-                      <p className="text-[13px] text-foreground/70 leading-relaxed">{exercise.inhale}</p>
-                    </div>
-                  )}
-                  {exercise.exhale && (
-                    <div className="flex gap-3 items-start">
-                      <span className="mt-0.5 shrink-0 text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#3d6b5a]/10 text-[#3d6b5a]">Out</span>
-                      <p className="text-[13px] text-foreground/70 leading-relaxed">{exercise.exhale}</p>
-                    </div>
-                  )}
-                  {exercise.breath_note && (
-                    <p className="text-[12px] text-foreground/40 italic">{exercise.breath_note}</p>
-                  )}
-                </div>
-              </Section>
+              <BreathingSection inhale={exercise.inhale} exhale={exercise.exhale} breathNote={exercise.breath_note} />
             )}
 
             {(exercise.primary_muscles?.length > 0 || exercise.secondary_muscles?.length > 0) && (
@@ -820,6 +802,48 @@ function ExerciseCard({
         </div>
       </div>
     </div>
+  )
+}
+
+/* ─── Breathing section: supports 2-breath and 4-breath patterns ─── */
+function BreathingSection({ inhale, exhale, breathNote }: { inhale: string; exhale: string; breathNote: string | null }) {
+  const inhalePhases = inhale ? inhale.split('|||') : []
+  const exhalePhases = exhale ? exhale.split('|||') : []
+  const isMultiPhase = inhalePhases.length > 1 || exhalePhases.length > 1
+
+  // Interleave: inhale1, exhale1, inhale2, exhale2...
+  const steps: { type: 'in' | 'out'; text: string; num: number }[] = []
+  const maxLen = Math.max(inhalePhases.length, exhalePhases.length)
+  for (let i = 0; i < maxLen; i++) {
+    if (inhalePhases[i]?.trim()) steps.push({ type: 'in', text: inhalePhases[i].trim(), num: steps.length + 1 })
+    if (exhalePhases[i]?.trim()) steps.push({ type: 'out', text: exhalePhases[i].trim(), num: steps.length + 1 })
+  }
+
+  return (
+    <>
+      <Section title={isMultiPhase ? `Breathing  ·  ${steps.length}-breath pattern` : 'Breathing'}>
+        <div className="space-y-2">
+          {steps.map((step, i) => (
+            <div key={i} className="flex gap-3 items-start">
+              <span className={`mt-0.5 shrink-0 text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md min-w-[38px] text-center ${
+                step.type === 'in'
+                  ? 'bg-[#5a6b8a]/10 text-[#5a6b8a]'
+                  : 'bg-[#3d6b5a]/10 text-[#3d6b5a]'
+              }`}>
+                {isMultiPhase && <span className="mr-0.5 tabular-nums">{step.num}.</span>}
+                {step.type === 'in' ? 'In' : 'Out'}
+              </span>
+              <p className="text-[13px] text-foreground/70 leading-relaxed">{step.text}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+      {breathNote && (
+        <Section title="Teaching Cues">
+          <p className="text-[13px] text-foreground/50 leading-relaxed">{breathNote}</p>
+        </Section>
+      )}
+    </>
   )
 }
 
