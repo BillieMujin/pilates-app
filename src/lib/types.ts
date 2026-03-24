@@ -36,3 +36,12 @@ export interface Favorite {
   exercise_id: string
   created_at: string
 }
+
+export interface ClassPlan {
+  id: string
+  user_id: string
+  name: string
+  exercise_ids: string[]
+  created_at: string
+  updated_at: string
+}

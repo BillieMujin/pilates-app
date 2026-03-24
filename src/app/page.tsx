@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Navbar from './components/Navbar'
 import ExerciseBrowser from './components/ExerciseBrowser'
-import type { Exercise, Favorite } from '@/lib/types'
+import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -17,14 +17,16 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Fetch favorites if logged in
+  // Fetch favorites and saved plans if logged in
   let favorites: Favorite[] = []
+  let savedPlans: ClassPlan[] = []
   if (user) {
-    const { data } = await supabase
-      .from('favorites')
-      .select('*')
-      .eq('user_id', user.id)
-    favorites = data ?? []
+    const [favResult, planResult] = await Promise.all([
+      supabase.from('favorites').select('*').eq('user_id', user.id),
+      supabase.from('class_plans').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
+    ])
+    favorites = favResult.data ?? []
+    savedPlans = planResult.data ?? []
   }
 
   return (
@@ -49,6 +51,7 @@ export default async function Home() {
           exercises={(exercises as Exercise[]) ?? []}
           user={user}
           initialFavorites={favorites}
+          initialSavedPlans={savedPlans}
         />
       </main>
     </>
