@@ -8,9 +8,9 @@ import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
 /* ─── colour maps ─── */
 const LAYER_COLORS: Record<string, string> = {
   warmup: '#7a6a72',
-  layer1: '#9a7aaa',
+  layer1: '#8a6d9a',
   layer2: '#c98a24',
-  layer3: '#6a8a6e',
+  layer3: '#7a9a80',
 }
 const LAYER_LABELS: Record<string, string> = {
   warmup: 'Warm-Up',
@@ -20,21 +20,21 @@ const LAYER_LABELS: Record<string, string> = {
 }
 const LAYER_PASTELS: Record<string, string> = {
   warmup: '#f5f2f0',
-  layer1: '#f6f0f8',
+  layer1: '#f3eef6',
   layer2: '#fdf6ea',
-  layer3: '#eff5f0',
+  layer3: '#eaf0eb',
 }
 const LAYER_PASTEL_SELECTED: Record<string, string> = {
   warmup: '#ebe5e0',
-  layer1: '#ece0f0',
+  layer1: '#e8ddef',
   layer2: '#f4e8cc',
-  layer3: '#dde8de',
+  layer3: '#dce6dd',
 }
 const LAYER_PASTEL_BORDER: Record<string, string> = {
   warmup: '#d8ccc5',
-  layer1: '#d4c0e0',
+  layer1: '#cdb8db',
   layer2: '#e0cc94',
-  layer3: '#bcd0be',
+  layer3: '#b8cfba',
 }
 
 /* ─── posture: roman numerals, single colour ─── */
@@ -73,14 +73,17 @@ const MUSCLE_KEYWORDS: Record<string, string[]> = {
   'Rectus abdominis': ['six pack', 'abs', 'abdominal'],
   'Transversus abdominis': ['transverse', 'deep core'],
   'Multifidus': ['deep back stabiliser'],
-  'Intercostals': ['intercostal', 'levatores costarum', 'scalenus', 'scalene'],
-  'Serratus anterior': ['serratus'],
+  'Intercostals': ['intercostal', 'levatores costarum'],
+  'Scalenes': ['scalenus', 'scalene'],
+  'Serratus anterior': ['serratus anterior', 'serratus ant'],
+  'Serratus posterior superior': ['serratus posterior sup', 'serratus posterior'],
+  'Serratus posterior inferior': ['serratus posterior inf'],
   'Pectoralis major': ['pec major', 'chest'],
   'Pectoralis minor': ['pec minor'],
 }
 
 /* ─── Dropdown component ─── */
-function Dropdown({ label, children, badge }: { label: string; children: React.ReactNode; badge?: number }) {
+function Dropdown({ label, children, badge, align = 'left' }: { label: string; children: React.ReactNode; badge?: number; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -111,7 +114,7 @@ function Dropdown({ label, children, badge }: { label: string; children: React.R
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 min-w-[240px] max-h-[360px] overflow-y-auto py-1.5">
+        <div className={`absolute top-full mt-1.5 bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 min-w-[220px] max-w-[calc(100vw-2.5rem)] max-h-[360px] overflow-y-auto py-1.5 ${align === 'right' ? 'right-0' : 'left-0'}`}>
           {children}
         </div>
       )}
@@ -436,7 +439,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
           </Dropdown>
 
           {/* Posture dropdown */}
-          <Dropdown label="Posture" badge={activePosture ? 1 : 0}>
+          <Dropdown label="Posture" badge={activePosture ? 1 : 0} align="right">
             <button
               onClick={() => setActivePosture(null)}
               className={`w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition ${!activePosture ? 'font-semibold text-primary' : 'text-foreground/70'}`}
@@ -456,7 +459,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
           </Dropdown>
 
           {/* Props dropdown */}
-          <Dropdown label="Props" badge={activeProp ? 1 : 0}>
+          <Dropdown label="Props" badge={activeProp ? 1 : 0} align="right">
             <button
               onClick={() => setActiveProp(null)}
               className={`w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition ${!activeProp ? 'font-semibold text-primary' : 'text-foreground/70'}`}
