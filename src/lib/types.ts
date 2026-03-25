@@ -43,6 +43,7 @@ export interface Exercise {
   props: ExerciseProp[] | null
   postures: PostureAdjustments | null
   posture_benefits: PostureBenefits | null
+  principles: string[] | null
   sort_order: number
   variations: ExerciseVariation[] | null
 }

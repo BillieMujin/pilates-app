@@ -82,10 +82,11 @@ const MUSCLE_KEYWORDS: Record<string, string[]> = {
   'Pectoralis minor': ['pec minor'],
 }
 
-/* ─── Dropdown component ─── */
+/* ─── Dropdown component (mobile-aware positioning) ─── */
 function Dropdown({ label, children, badge, align = 'left' }: { label: string; children: React.ReactNode; badge?: number; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const [mobileStyle, setMobileStyle] = useState<React.CSSProperties | null>(null)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -94,6 +95,16 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  // On mobile, use fixed positioning to avoid overflow
+  useEffect(() => {
+    if (open && ref.current && window.innerWidth < 640) {
+      const rect = ref.current.getBoundingClientRect()
+      setMobileStyle({ position: 'fixed', top: rect.bottom + 6, left: 12, right: 12 })
+    } else {
+      setMobileStyle(null)
+    }
+  }, [open])
 
   return (
     <div ref={ref} className="relative">
@@ -114,7 +125,12 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
         </svg>
       </button>
       {open && (
-        <div className={`absolute top-full mt-1.5 bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 min-w-[220px] max-w-[calc(100vw-2.5rem)] max-h-[360px] overflow-y-auto py-1.5 ${align === 'right' ? 'right-0' : 'left-0'}`}>
+        <div
+          className={`bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 max-h-[360px] overflow-y-auto py-1.5 ${
+            mobileStyle ? '' : `absolute top-full mt-1.5 min-w-[220px] ${align === 'right' ? 'right-0' : 'left-0'}`
+          }`}
+          style={mobileStyle || undefined}
+        >
           {children}
         </div>
       )}
@@ -707,7 +723,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
             <div className="flex-1 h-px bg-black/[0.04]" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
             {layerExercises.map((exercise) => {
               const isExpanded = expandedId === exercise.id
               return (
