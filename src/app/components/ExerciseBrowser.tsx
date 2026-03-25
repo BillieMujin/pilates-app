@@ -620,7 +620,14 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
       )}
 
       {/* ── Exercise sections grouped by layer ── */}
-      {Object.entries(groupedByLayer).map(([layer, layerExercises]) => (
+      {Object.entries(showPlan && classPlan.size > 0 ? (() => {
+        const groups: Record<string, Exercise[]> = {}
+        for (const layer of ALL_LAYERS) {
+          const layerExercises = planExercises.filter((e) => e.layer === layer)
+          if (layerExercises.length > 0) groups[layer] = layerExercises
+        }
+        return groups
+      })() : groupedByLayer).map(([layer, layerExercises]) => (
         <div key={layer} className="mb-8">
           <div className="flex items-center gap-3 mb-3 px-1">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: LAYER_COLORS[layer] }} />
