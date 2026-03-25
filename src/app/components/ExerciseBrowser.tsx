@@ -82,12 +82,12 @@ const MUSCLE_KEYWORDS: Record<string, string[]> = {
   'Pectoralis minor': ['pec minor'],
 }
 
-/* ─── Dropdown component (mobile-aware positioning) ─── */
+/* ─── Dropdown component (fixed positioning from button rect) ─── */
 function Dropdown({ label, children, badge, align = 'left' }: { label: string; children: React.ReactNode; badge?: number; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
-  const [mobileStyle, setMobileStyle] = useState<React.CSSProperties | null>(null)
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({})
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -97,21 +97,28 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // On mobile, use fixed positioning based on button rect (not container)
-  useEffect(() => {
-    if (open && btnRef.current && window.innerWidth < 640) {
+  // Calculate fixed position from button rect on every open
+  const handleToggle = useCallback(() => {
+    if (!open && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
-      setMobileStyle({ position: 'fixed', top: rect.bottom + 6, left: 12, right: 12 })
-    } else {
-      setMobileStyle(null)
+      const vw = window.innerWidth
+      const panelW = Math.min(280, vw - 24)
+      let left: number
+      if (align === 'right') {
+        left = Math.max(12, rect.right - panelW)
+      } else {
+        left = Math.max(12, Math.min(rect.left, vw - panelW - 12))
+      }
+      setPanelStyle({ position: 'fixed', top: rect.bottom + 6, left, width: panelW })
     }
-  }, [open])
+    setOpen((o) => !o)
+  }, [open, align])
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref}>
       <button
         ref={btnRef}
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className={`flex items-center gap-2 text-[13px] font-medium px-4 py-2 rounded-xl border transition-all duration-200 ${
           badge && badge > 0
             ? 'bg-foreground text-surface border-foreground shadow-sm'
@@ -128,10 +135,8 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
       </button>
       {open && (
         <div
-          className={`bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 max-h-[360px] overflow-y-auto py-1.5 ${
-            mobileStyle ? '' : `absolute top-full mt-1.5 min-w-[220px] ${align === 'right' ? 'right-0' : 'left-0'}`
-          }`}
-          style={mobileStyle || undefined}
+          className="bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 max-h-[360px] overflow-y-auto py-1.5"
+          style={panelStyle}
         >
           {children}
         </div>
