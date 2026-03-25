@@ -42,7 +42,7 @@ export default function Navbar({ user }: NavbarProps) {
               Essential Matwork
             </span>
             <span className="text-[10px] font-semibold tracking-[0.15em] uppercase text-foreground/30">
-              STOTT PILATES
+              PILATES REFERENCE
             </span>
           </div>
         </Link>

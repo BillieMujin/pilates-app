@@ -40,8 +40,8 @@ export default async function Home() {
               Essential Matwork
             </h1>
             <p className="text-muted text-base sm:text-lg max-w-2xl">
-              Your complete reference for STOTT PILATES Essential Matwork
-              exercises. Browse by layer, search by name or muscle, and study
+              Your complete reference for Essential Matwork exercises.
+              Browse by layer, search by name or muscle, and study
               breathing patterns and postural adjustments.
             </p>
           </div>

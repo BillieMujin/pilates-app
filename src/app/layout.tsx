@@ -15,9 +15,9 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: 'STOTT PILATES Essential Matwork',
+  title: 'Essential Matwork — Pilates Reference',
   description:
-    'A premium reference guide for STOTT PILATES Essential Matwork exercises — browse, search, and study breathing patterns, muscle engagement, and postural adjustments.',
+    'A premium reference guide for Essential Matwork Pilates exercises — browse, search, and study breathing patterns, muscle engagement, and postural adjustments.',
 }
 
 export default function RootLayout({
