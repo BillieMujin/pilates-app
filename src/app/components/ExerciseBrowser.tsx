@@ -7,10 +7,10 @@ import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
 
 /* ─── colour maps ─── */
 const LAYER_COLORS: Record<string, string> = {
-  warmup: '#5a6a8a',
-  layer1: '#1a7a7a',
-  layer2: '#c9a020',
-  layer3: '#1a2a5a',
+  warmup: '#7a6a72',
+  layer1: '#9a7aaa',
+  layer2: '#c98a24',
+  layer3: '#6a8a6e',
 }
 const LAYER_LABELS: Record<string, string> = {
   warmup: 'Warm-Up',
@@ -19,26 +19,26 @@ const LAYER_LABELS: Record<string, string> = {
   layer3: 'Layer 3',
 }
 const LAYER_PASTELS: Record<string, string> = {
-  warmup: '#f4f6fa',
-  layer1: '#f0fafa',
-  layer2: '#fdf9ee',
-  layer3: '#f0f2fa',
+  warmup: '#f5f2f0',
+  layer1: '#f6f0f8',
+  layer2: '#fdf6ea',
+  layer3: '#eff5f0',
 }
 const LAYER_PASTEL_SELECTED: Record<string, string> = {
-  warmup: '#e4e8f0',
-  layer1: '#daf0f0',
-  layer2: '#f4ecce',
-  layer3: '#dce0f0',
+  warmup: '#ebe5e0',
+  layer1: '#ece0f0',
+  layer2: '#f4e8cc',
+  layer3: '#dde8de',
 }
 const LAYER_PASTEL_BORDER: Record<string, string> = {
-  warmup: '#c8d0e0',
-  layer1: '#b0d8d8',
-  layer2: '#e0d0a0',
-  layer3: '#b8c0d8',
+  warmup: '#d8ccc5',
+  layer1: '#d4c0e0',
+  layer2: '#e0cc94',
+  layer3: '#bcd0be',
 }
 
 /* ─── posture: roman numerals, single colour ─── */
-const POSTURE_SYMBOL_COLOR = '#1a7a7a'
+const POSTURE_SYMBOL_COLOR = '#6b2d5b'
 const POSTURE_META: Record<string, { label: string; numeral: string }> = {
   kyphosis:      { label: 'Kyphosis-Lordosis', numeral: 'I' },
   kyphosis_only: { label: 'Kyphosis',          numeral: 'II' },
@@ -384,7 +384,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
                 >
                   <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${
                     s.type === 'exercise' ? 'bg-primary/10 text-primary' :
-                    s.type === 'muscle' ? 'bg-[#1a2a5a]/10 text-[#1a2a5a]' :
+                    s.type === 'muscle' ? 'bg-[#6a8a6e]/10 text-[#6a8a6e]' :
                     'bg-secondary/10 text-secondary'
                   }`}>
                     {s.type === 'exercise' ? 'Ex' : s.type === 'muscle' ? 'Mu' : 'Pr'}
@@ -915,7 +915,7 @@ function BreathingSection({ inhale, exhale, breathNote }: { inhale: string; exha
           {steps.map((step, i) => (
             <div key={i} className="flex gap-3 items-start">
               <span className={`mt-0.5 shrink-0 text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md min-w-[38px] text-center ${
-                step.type === 'in' ? 'bg-[#1a7a7a]/10 text-[#1a7a7a]' : 'bg-[#5a8a6a]/10 text-[#5a8a6a]'
+                step.type === 'in' ? 'bg-[#6b7a9a]/10 text-[#6b7a9a]' : 'bg-[#6a8a6e]/10 text-[#6a8a6e]'
               }`}>
                 {isMultiPhase && <span className="mr-0.5 tabular-nums">{step.num}.</span>}
                 {step.type === 'in' ? 'In' : 'Out'}
