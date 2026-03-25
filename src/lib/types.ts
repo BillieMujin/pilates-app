@@ -63,3 +63,20 @@ export interface ClassPlan {
   created_at: string
   updated_at: string
 }
+
+export interface PosturalAssessment {
+  id: string
+  user_id: string
+  client_name: string
+  assessment_date: string
+  side_view: Record<string, any>
+  front_view: Record<string, any>
+  back_view: Record<string, any>
+  spine_sequencing: Record<string, any>
+  plumb_line: Record<string, any>
+  suggested_posture: string | null
+  confirmed_posture: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
