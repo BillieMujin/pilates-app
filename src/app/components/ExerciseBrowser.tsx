@@ -811,6 +811,20 @@ function ExerciseCard({
               </Section>
             )}
 
+            {/* Variations */}
+            {exercise.variations && exercise.variations.length > 0 && (
+              <Section title="Variations">
+                <div className="space-y-2">
+                  {exercise.variations.map((v, i) => (
+                    <div key={i} className="bg-white/70 rounded-xl border border-black/[0.04] p-3.5">
+                      <span className="text-[13px] font-semibold text-foreground">{v.name}</span>
+                      <p className="text-[12px] text-foreground/50 mt-0.5">{v.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+
             {/* Postural Adjustments — with collapsible sections */}
             {postures && Object.entries(postures).some(([, v]) => v) && (
               <PosturalSection postures={postures} activePosture={activePosture} postureProps={postureProps.byPosture} />

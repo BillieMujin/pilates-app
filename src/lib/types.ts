@@ -14,6 +14,11 @@ export interface PostureAdjustments {
   swayback?: string | null
 }
 
+export interface ExerciseVariation {
+  name: string
+  description: string
+}
+
 export interface Exercise {
   id: string
   name: string
@@ -28,6 +33,7 @@ export interface Exercise {
   props: ExerciseProp[] | null
   postures: PostureAdjustments | null
   sort_order: number
+  variations: ExerciseVariation[] | null
 }
 
 export interface Favorite {
