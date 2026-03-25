@@ -20,6 +20,15 @@ export interface ExerciseVariation {
   description: string
 }
 
+export interface PostureBenefits {
+  kyphosis?: 'corrective' | 'awareness'
+  kyphosis_only?: 'corrective' | 'awareness'
+  lordosis?: 'corrective' | 'awareness'
+  flatback?: 'corrective' | 'awareness'
+  military?: 'corrective' | 'awareness'
+  swayback?: 'corrective' | 'awareness'
+}
+
 export interface Exercise {
   id: string
   name: string
@@ -33,6 +42,7 @@ export interface Exercise {
   secondary_muscles: string[]
   props: ExerciseProp[] | null
   postures: PostureAdjustments | null
+  posture_benefits: PostureBenefits | null
   sort_order: number
   variations: ExerciseVariation[] | null
 }

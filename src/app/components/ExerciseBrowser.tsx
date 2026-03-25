@@ -293,15 +293,25 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
     return list
   }, [exercises, activeLayers, noLayerFilter, activeMuscles, noMuscleFilter, search, activePosture, activeProp, activePropCategory, showFavsOnly, favIds])
 
-  /* ─── group by layer ─── */
+  /* ─── group by layer, sort corrective first when posture filter active ─── */
   const groupedByLayer = useMemo(() => {
     const groups: Record<string, Exercise[]> = {}
     for (const layer of ALL_LAYERS) {
-      const layerExercises = filtered.filter((e) => e.layer === layer)
+      let layerExercises = filtered.filter((e) => e.layer === layer)
+      // When a posture filter is active, sort corrective exercises before awareness
+      if (activePosture && layerExercises.length > 0) {
+        layerExercises = [...layerExercises].sort((a, b) => {
+          const aLevel = (a.posture_benefits as Record<string, string> | null)?.[activePosture]
+          const bLevel = (b.posture_benefits as Record<string, string> | null)?.[activePosture]
+          if (aLevel === 'corrective' && bLevel !== 'corrective') return -1
+          if (bLevel === 'corrective' && aLevel !== 'corrective') return 1
+          return 0
+        })
+      }
       if (layerExercises.length > 0) groups[layer] = layerExercises
     }
     return groups
-  }, [filtered])
+  }, [filtered, activePosture])
 
   /* ─── stats ─── */
   const stats = useMemo(() => {
@@ -769,6 +779,9 @@ function ExerciseCard({
   const pastel = inPlan ? LAYER_PASTEL_SELECTED[exercise.layer] : LAYER_PASTELS[exercise.layer]
   const borderColor = inPlan ? LAYER_PASTEL_BORDER[exercise.layer] : 'rgba(0,0,0,0.04)'
   const postures = exercise.postures as Record<string, string | null> | null
+  const benefitLevel = activePosture && exercise.posture_benefits
+    ? (exercise.posture_benefits as Record<string, string>)[activePosture] ?? null
+    : null
 
   // Scroll to top of card when expanded
   useEffect(() => {
@@ -800,7 +813,7 @@ function ExerciseCard({
   return (
     <div
       ref={cardRef}
-      className={`group rounded-2xl border overflow-hidden transition-all duration-200 ${expanded ? 'shadow-lg shadow-black/[0.06]' : 'hover:shadow-md hover:shadow-black/[0.04]'} ${inPlan ? 'ring-1 ring-primary/20' : ''}`}
+      className={`group rounded-2xl border overflow-hidden transition-all duration-200 ${expanded ? 'shadow-lg shadow-black/[0.06]' : 'hover:shadow-md hover:shadow-black/[0.04]'} ${inPlan ? 'ring-1 ring-primary/20' : ''} ${benefitLevel === 'corrective' ? 'ring-1 ring-[#7a9a80]/25' : ''} ${benefitLevel === 'awareness' ? 'opacity-70' : ''}`}
       style={{ backgroundColor: pastel, borderColor }}
     >
       {/* ── Card header ── */}
@@ -815,8 +828,14 @@ function ExerciseCard({
 
         <button onClick={onToggle} className="flex-1 text-left py-3.5 pr-2 flex items-center gap-3 min-w-0">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h3 className="font-heading text-[16px] font-semibold text-foreground truncate leading-tight">{exercise.name}</h3>
+              {benefitLevel === 'corrective' && (
+                <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#7a9a80]/15 text-[#7a9a80] border border-[#7a9a80]/20">Corrective</span>
+              )}
+              {benefitLevel === 'awareness' && (
+                <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-black/[0.03] text-foreground/30">Awareness</span>
+              )}
               {exercise.reps && <span className="shrink-0 text-[11px] font-medium text-foreground/30 bg-white/80 px-2 py-0.5 rounded-md">{exercise.reps}</span>}
             </div>
             {/* Posture numerals on card */}
