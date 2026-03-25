@@ -86,6 +86,7 @@ const MUSCLE_KEYWORDS: Record<string, string[]> = {
 function Dropdown({ label, children, badge, align = 'left' }: { label: string; children: React.ReactNode; badge?: number; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const [mobileStyle, setMobileStyle] = useState<React.CSSProperties | null>(null)
 
   useEffect(() => {
@@ -96,10 +97,10 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // On mobile, use fixed positioning to avoid overflow
+  // On mobile, use fixed positioning based on button rect (not container)
   useEffect(() => {
-    if (open && ref.current && window.innerWidth < 640) {
-      const rect = ref.current.getBoundingClientRect()
+    if (open && btnRef.current && window.innerWidth < 640) {
+      const rect = btnRef.current.getBoundingClientRect()
       setMobileStyle({ position: 'fixed', top: rect.bottom + 6, left: 12, right: 12 })
     } else {
       setMobileStyle(null)
@@ -109,6 +110,7 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
   return (
     <div ref={ref} className="relative">
       <button
+        ref={btnRef}
         onClick={() => setOpen(!open)}
         className={`flex items-center gap-2 text-[13px] font-medium px-4 py-2 rounded-xl border transition-all duration-200 ${
           badge && badge > 0
@@ -799,12 +801,19 @@ function ExerciseCard({
     ? (exercise.posture_benefits as Record<string, string>)[activePosture] ?? null
     : null
 
-  // Scroll to top of card when expanded
+  // Scroll to top of card after expand animation completes (400ms animation + buffer)
   useEffect(() => {
     if (expanded && cardRef.current) {
       setTimeout(() => {
-        cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 150)
+        if (!cardRef.current) return
+        const rect = cardRef.current.getBoundingClientRect()
+        // Account for sticky navbar (64px) + sticky filter bar (~160px on mobile)
+        const stickyOffset = 80
+        if (rect.top < stickyOffset || rect.top > window.innerHeight * 0.5) {
+          const scrollY = window.scrollY + rect.top - stickyOffset
+          window.scrollTo({ top: scrollY, behavior: 'smooth' })
+        }
+      }, 450)
     }
   }, [expanded])
 
