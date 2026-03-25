@@ -3,6 +3,7 @@ export interface ExerciseProp {
   name: string
   for: string
   tip: string
+  category: 'correction' | 'modification'
 }
 
 export interface PostureAdjustments {

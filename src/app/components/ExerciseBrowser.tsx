@@ -138,6 +138,8 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
   const [search, setSearch] = useState('')
   const [activePosture, setActivePosture] = useState<string | null>(null)
   const [activeProp, setActiveProp] = useState<string | null>(null)
+  const [activePropCategory, setActivePropCategory] = useState<string | null>(null)
+  const [showFavsOnly, setShowFavsOnly] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<Favorite[]>(initialFavorites)
   const [togglingFav, setTogglingFav] = useState<Set<string>>(new Set())
@@ -280,8 +282,16 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
       list = list.filter((e) => e.props?.some((p) => p.tool === activeProp))
     }
 
+    if (activePropCategory) {
+      list = list.filter((e) => e.props?.some((p) => p.category === activePropCategory))
+    }
+
+    if (showFavsOnly) {
+      list = list.filter((e) => favIds.has(e.id))
+    }
+
     return list
-  }, [exercises, activeLayers, noLayerFilter, activeMuscles, noMuscleFilter, search, activePosture, activeProp])
+  }, [exercises, activeLayers, noLayerFilter, activeMuscles, noMuscleFilter, search, activePosture, activeProp, activePropCategory, showFavsOnly, favIds])
 
   /* ─── group by layer ─── */
   const groupedByLayer = useMemo(() => {
@@ -458,27 +468,63 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
             })}
           </Dropdown>
 
-          {/* Props dropdown */}
-          <Dropdown label="Props" badge={activeProp ? 1 : 0} align="right">
+          {/* Props dropdown — grouped by category */}
+          <Dropdown label="Props" badge={(activeProp ? 1 : 0) + (activePropCategory ? 1 : 0)} align="right">
             <button
-              onClick={() => setActiveProp(null)}
-              className={`w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition ${!activeProp ? 'font-semibold text-primary' : 'text-foreground/70'}`}
+              onClick={() => { setActiveProp(null); setActivePropCategory(null) }}
+              className={`w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition ${!activeProp && !activePropCategory ? 'font-semibold text-primary' : 'text-foreground/70'}`}
             >All Props</button>
             <div className="h-px bg-black/[0.04] mx-3 my-1" />
+            {/* Category filters */}
+            <button
+              onClick={() => { setActivePropCategory(activePropCategory === 'correction' ? null : 'correction'); setActiveProp(null) }}
+              className="w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition flex items-center gap-3"
+            >
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#7a9a80]/15 text-[#7a9a80] font-bold uppercase tracking-wider shrink-0">Align</span>
+              <span className={activePropCategory === 'correction' ? 'font-medium text-foreground' : 'text-foreground/70'}>Correction Props</span>
+              {activePropCategory === 'correction' && <svg className="w-4 h-4 text-primary ml-auto shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+            </button>
+            <button
+              onClick={() => { setActivePropCategory(activePropCategory === 'modification' ? null : 'modification'); setActiveProp(null) }}
+              className="w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition flex items-center gap-3"
+            >
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary/15 text-secondary font-bold uppercase tracking-wider shrink-0">Mod</span>
+              <span className={activePropCategory === 'modification' ? 'font-medium text-foreground' : 'text-foreground/70'}>Modification Props</span>
+              {activePropCategory === 'modification' && <svg className="w-4 h-4 text-primary ml-auto shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+            </button>
+            <div className="h-px bg-black/[0.04] mx-3 my-1" />
+            <span className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground/20">By tool</span>
             {allProps.map((prop) => {
               const active = activeProp === prop
               return (
-                <button key={prop} onClick={() => setActiveProp(active ? null : prop)} className="w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition flex items-center gap-3">
+                <button key={prop} onClick={() => { setActiveProp(active ? null : prop); setActivePropCategory(null) }} className="w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition flex items-center gap-3">
                   <span className={active ? 'font-medium text-foreground' : 'text-foreground/70'}>{prop}</span>
                   {active && <svg className="w-4 h-4 text-primary ml-auto" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
                 </button>
               )
             })}
           </Dropdown>
+
+          {/* Favorites toggle */}
+          {user && (
+            <button
+              onClick={() => setShowFavsOnly(!showFavsOnly)}
+              className={`flex items-center gap-1.5 text-[13px] font-medium px-3.5 py-2 rounded-xl border transition-all duration-200 ${
+                showFavsOnly
+                  ? 'bg-secondary text-white border-secondary shadow-sm'
+                  : 'bg-surface text-foreground/80 border-border hover:border-secondary/30 hover:shadow-sm'
+              }`}
+            >
+              <svg className="w-4 h-4" fill={showFavsOnly ? 'currentColor' : 'none'} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+              {showFavsOnly ? `Favourites (${favorites.length})` : ''}
+            </button>
+          )}
         </div>
 
         {/* Active filter pills */}
-        {(!noLayerFilter || !noMuscleFilter || activePosture || activeProp) && (
+        {(!noLayerFilter || !noMuscleFilter || activePosture || activeProp || activePropCategory || showFavsOnly) && (
           <div className="flex flex-wrap gap-1.5">
             {Array.from(activeLayers).map((layer) => (
               <span key={layer} className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg text-white" style={{ backgroundColor: LAYER_COLORS[layer] }}>
@@ -498,13 +544,25 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
                 <button onClick={() => setActivePosture(null)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
               </span>
             )}
+            {activePropCategory && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-secondary/10 text-secondary">
+                {activePropCategory === 'correction' ? 'Correction Props' : 'Modification Props'}
+                <button onClick={() => setActivePropCategory(null)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </span>
+            )}
             {activeProp && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-secondary/10 text-secondary">
                 {activeProp}
                 <button onClick={() => setActiveProp(null)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
               </span>
             )}
-            <button onClick={() => { setActiveLayers(new Set()); setActiveMuscles(new Set()); setActivePosture(null); setActiveProp(null) }} className="text-[11px] text-foreground/30 hover:text-foreground/60 px-2 py-1 transition-colors">Clear all</button>
+            {showFavsOnly && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-secondary/10 text-secondary">
+                Favourites
+                <button onClick={() => setShowFavsOnly(false)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </span>
+            )}
+            <button onClick={() => { setActiveLayers(new Set()); setActiveMuscles(new Set()); setActivePosture(null); setActiveProp(null); setActivePropCategory(null); setShowFavsOnly(false) }} className="text-[11px] text-foreground/30 hover:text-foreground/60 px-2 py-1 transition-colors">Clear all</button>
           </div>
         )}
       </div>
@@ -667,7 +725,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
       {filtered.length === 0 && (
         <div className="text-center py-24">
           <p className="text-foreground/30 text-lg font-light">No exercises match your filters.</p>
-          <button onClick={() => { setActiveLayers(new Set()); setActiveMuscles(new Set()); setSearch(''); setActivePosture(null) }} className="mt-4 text-[13px] font-medium text-primary hover:underline">Clear all filters</button>
+          <button onClick={() => { setActiveLayers(new Set()); setActiveMuscles(new Set()); setSearch(''); setActivePosture(null); setActiveProp(null); setActivePropCategory(null); setShowFavsOnly(false) }} className="mt-4 text-[13px] font-medium text-primary hover:underline">Clear all filters</button>
         </div>
       )}
 
@@ -706,10 +764,20 @@ interface CardProps {
 function ExerciseCard({
   exercise, expanded, onToggle, isFav, toggling, onFav, showFav, inPlan, onTogglePlan, onMuscleClick, activePosture,
 }: CardProps) {
+  const cardRef = useRef<HTMLDivElement>(null)
   const layerColor = LAYER_COLORS[exercise.layer] ?? '#6e5f66'
   const pastel = inPlan ? LAYER_PASTEL_SELECTED[exercise.layer] : LAYER_PASTELS[exercise.layer]
   const borderColor = inPlan ? LAYER_PASTEL_BORDER[exercise.layer] : 'rgba(0,0,0,0.04)'
   const postures = exercise.postures as Record<string, string | null> | null
+
+  // Scroll to top of card when expanded
+  useEffect(() => {
+    if (expanded && cardRef.current) {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 150)
+    }
+  }, [expanded])
 
   // Separate posture-specific props from general props
   const postureProps = useMemo(() => {
@@ -731,6 +799,7 @@ function ExerciseCard({
 
   return (
     <div
+      ref={cardRef}
       className={`group rounded-2xl border overflow-hidden transition-all duration-200 ${expanded ? 'shadow-lg shadow-black/[0.06]' : 'hover:shadow-md hover:shadow-black/[0.04]'} ${inPlan ? 'ring-1 ring-primary/20' : ''}`}
       style={{ backgroundColor: pastel, borderColor }}
     >
@@ -810,11 +879,29 @@ function ExerciseCard({
               </Section>
             )}
 
-            {/* General props (not posture-specific) */}
-            {postureProps.general.length > 0 && (
+            {/* General props — separated by category */}
+            {postureProps.general.filter(p => p.category === 'correction').length > 0 && (
+              <Section title="Correction Props">
+                <div className="space-y-2">
+                  {postureProps.general.filter(p => p.category === 'correction').map((prop, i) => (
+                    <PropCard key={i} prop={prop} />
+                  ))}
+                </div>
+              </Section>
+            )}
+            {postureProps.general.filter(p => p.category === 'modification').length > 0 && (
+              <Section title="Modification Props">
+                <div className="space-y-2">
+                  {postureProps.general.filter(p => p.category === 'modification').map((prop, i) => (
+                    <PropCard key={i} prop={prop} />
+                  ))}
+                </div>
+              </Section>
+            )}
+            {postureProps.general.filter(p => !p.category).length > 0 && (
               <Section title="Props">
                 <div className="space-y-2">
-                  {postureProps.general.map((prop, i) => (
+                  {postureProps.general.filter(p => !p.category).map((prop, i) => (
                     <PropCard key={i} prop={prop} />
                   ))}
                 </div>
@@ -910,9 +997,16 @@ function PosturalSection({ postures, activePosture, postureProps }: {
 function PropCard({ prop, compact }: { prop: NonNullable<Exercise['props']>[number]; compact?: boolean }) {
   return (
     <div className={`bg-white/70 rounded-xl border border-black/[0.04] ${compact ? 'p-2.5' : 'p-3.5'}`}>
-      <div className="flex items-center gap-2 mb-0.5">
+      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
         <span className={`font-semibold text-foreground ${compact ? 'text-[12px]' : 'text-[13px]'}`}>{prop.name}</span>
         {prop.tool && <span className="text-[11px] text-foreground/40 bg-black/[0.03] px-2 py-0.5 rounded-md">{prop.tool}</span>}
+        {prop.category && (
+          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+            prop.category === 'correction' ? 'bg-[#7a9a80]/12 text-[#7a9a80]' : 'bg-secondary/12 text-secondary'
+          }`}>
+            {prop.category === 'correction' ? 'Correction' : 'Modification'}
+          </span>
+        )}
       </div>
       {prop.tip && <p className={`text-foreground/50 ${compact ? 'text-[11px]' : 'text-[12px]'}`}>{prop.tip}</p>}
     </div>
