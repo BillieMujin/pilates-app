@@ -7,10 +7,10 @@ import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
 
 /* ─── colour maps ─── */
 const LAYER_COLORS: Record<string, string> = {
-  warmup: '#6e5f66',
-  layer1: '#8b3a62',
-  layer2: '#b8860b',
-  layer3: '#5c2751',
+  warmup: '#5a6a8a',
+  layer1: '#1a7a7a',
+  layer2: '#c9a020',
+  layer3: '#1a2a5a',
 }
 const LAYER_LABELS: Record<string, string> = {
   warmup: 'Warm-Up',
@@ -19,26 +19,26 @@ const LAYER_LABELS: Record<string, string> = {
   layer3: 'Layer 3',
 }
 const LAYER_PASTELS: Record<string, string> = {
-  warmup: '#faf8f7',
-  layer1: '#fdf6f9',
-  layer2: '#fdfaf2',
-  layer3: '#faf5f9',
+  warmup: '#f4f6fa',
+  layer1: '#f0fafa',
+  layer2: '#fdf9ee',
+  layer3: '#f0f2fa',
 }
 const LAYER_PASTEL_SELECTED: Record<string, string> = {
-  warmup: '#f0eae8',
-  layer1: '#f8e8f0',
-  layer2: '#f8f0dc',
-  layer3: '#f0e0ea',
+  warmup: '#e4e8f0',
+  layer1: '#daf0f0',
+  layer2: '#f4ecce',
+  layer3: '#dce0f0',
 }
 const LAYER_PASTEL_BORDER: Record<string, string> = {
-  warmup: '#e0d5d0',
-  layer1: '#e8c0d4',
-  layer2: '#e8d4a0',
-  layer3: '#d8b4cc',
+  warmup: '#c8d0e0',
+  layer1: '#b0d8d8',
+  layer2: '#e0d0a0',
+  layer3: '#b8c0d8',
 }
 
 /* ─── posture: roman numerals, single colour ─── */
-const POSTURE_SYMBOL_COLOR = '#6b2d5b'
+const POSTURE_SYMBOL_COLOR = '#1a7a7a'
 const POSTURE_META: Record<string, { label: string; numeral: string }> = {
   kyphosis:      { label: 'Kyphosis-Lordosis', numeral: 'I' },
   kyphosis_only: { label: 'Kyphosis',          numeral: 'II' },
@@ -134,6 +134,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
   const [activeMuscles, setActiveMuscles] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState('')
   const [activePosture, setActivePosture] = useState<string | null>(null)
+  const [activeProp, setActiveProp] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<Favorite[]>(initialFavorites)
   const [togglingFav, setTogglingFav] = useState<Set<string>>(new Set())
@@ -272,8 +273,12 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
       })
     }
 
+    if (activeProp) {
+      list = list.filter((e) => e.props?.some((p) => p.tool === activeProp))
+    }
+
     return list
-  }, [exercises, activeLayers, noLayerFilter, activeMuscles, noMuscleFilter, search, activePosture])
+  }, [exercises, activeLayers, noLayerFilter, activeMuscles, noMuscleFilter, search, activePosture, activeProp])
 
   /* ─── group by layer ─── */
   const groupedByLayer = useMemo(() => {
@@ -379,7 +384,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
                 >
                   <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${
                     s.type === 'exercise' ? 'bg-primary/10 text-primary' :
-                    s.type === 'muscle' ? 'bg-[#3d6b5a]/10 text-[#3d6b5a]' :
+                    s.type === 'muscle' ? 'bg-[#1a2a5a]/10 text-[#1a2a5a]' :
                     'bg-secondary/10 text-secondary'
                   }`}>
                     {s.type === 'exercise' ? 'Ex' : s.type === 'muscle' ? 'Mu' : 'Pr'}
@@ -430,32 +435,47 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
             })}
           </Dropdown>
 
-          <div className="w-px h-6 bg-black/[0.06]" />
+          {/* Posture dropdown */}
+          <Dropdown label="Posture" badge={activePosture ? 1 : 0}>
+            <button
+              onClick={() => setActivePosture(null)}
+              className={`w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition ${!activePosture ? 'font-semibold text-primary' : 'text-foreground/70'}`}
+            >All Postures</button>
+            <div className="h-px bg-black/[0.04] mx-3 my-1" />
+            {POSTURE_KEYS.map((key) => {
+              const { label, numeral } = POSTURE_META[key]
+              const active = activePosture === key
+              return (
+                <button key={key} onClick={() => setActivePosture(active ? null : key)} className="w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition flex items-center gap-3">
+                  <span className="font-heading font-bold text-[14px] leading-none w-6 text-center" style={{ color: POSTURE_SYMBOL_COLOR }}>{numeral}</span>
+                  <span className={active ? 'font-medium text-foreground' : 'text-foreground/70'}>{label}</span>
+                  {active && <svg className="w-4 h-4 text-primary ml-auto" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+                </button>
+              )
+            })}
+          </Dropdown>
 
-          {/* Posture filters — roman numerals, single colour */}
-          {POSTURE_KEYS.map((key) => {
-            const { label, numeral } = POSTURE_META[key]
-            const active = activePosture === key
-            return (
-              <button
-                key={key}
-                onClick={() => setActivePosture(active ? null : key)}
-                className={`flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-lg border transition-all duration-200 ${
-                  active
-                    ? 'text-white border-transparent shadow-sm scale-[1.02]'
-                    : 'bg-white text-foreground/60 border-black/[0.06] hover:border-black/[0.12] hover:text-foreground/80 hover:shadow-sm'
-                }`}
-                style={active ? { backgroundColor: POSTURE_SYMBOL_COLOR } : undefined}
-              >
-                <span className="font-heading font-bold text-[13px] leading-none" style={active ? { color: 'white' } : { color: POSTURE_SYMBOL_COLOR }}>{numeral}</span>
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            )
-          })}
+          {/* Props dropdown */}
+          <Dropdown label="Props" badge={activeProp ? 1 : 0}>
+            <button
+              onClick={() => setActiveProp(null)}
+              className={`w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition ${!activeProp ? 'font-semibold text-primary' : 'text-foreground/70'}`}
+            >All Props</button>
+            <div className="h-px bg-black/[0.04] mx-3 my-1" />
+            {allProps.map((prop) => {
+              const active = activeProp === prop
+              return (
+                <button key={prop} onClick={() => setActiveProp(active ? null : prop)} className="w-full text-left px-4 py-2 text-[13px] hover:bg-black/[0.03] transition flex items-center gap-3">
+                  <span className={active ? 'font-medium text-foreground' : 'text-foreground/70'}>{prop}</span>
+                  {active && <svg className="w-4 h-4 text-primary ml-auto" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+                </button>
+              )
+            })}
+          </Dropdown>
         </div>
 
         {/* Active filter pills */}
-        {(!noLayerFilter || !noMuscleFilter) && (
+        {(!noLayerFilter || !noMuscleFilter || activePosture || activeProp) && (
           <div className="flex flex-wrap gap-1.5">
             {Array.from(activeLayers).map((layer) => (
               <span key={layer} className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg text-white" style={{ backgroundColor: LAYER_COLORS[layer] }}>
@@ -469,7 +489,19 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
                 <button onClick={() => toggleMuscle(muscle)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
               </span>
             ))}
-            <button onClick={() => { setActiveLayers(new Set()); setActiveMuscles(new Set()) }} className="text-[11px] text-foreground/30 hover:text-foreground/60 px-2 py-1 transition-colors">Clear all</button>
+            {activePosture && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg text-white" style={{ backgroundColor: POSTURE_SYMBOL_COLOR }}>
+                {POSTURE_META[activePosture].numeral} {POSTURE_META[activePosture].label}
+                <button onClick={() => setActivePosture(null)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </span>
+            )}
+            {activeProp && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-secondary/10 text-secondary">
+                {activeProp}
+                <button onClick={() => setActiveProp(null)} className="hover:opacity-70 ml-0.5"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </span>
+            )}
+            <button onClick={() => { setActiveLayers(new Set()); setActiveMuscles(new Set()); setActivePosture(null); setActiveProp(null) }} className="text-[11px] text-foreground/30 hover:text-foreground/60 px-2 py-1 transition-colors">Clear all</button>
           </div>
         )}
       </div>
@@ -598,22 +630,26 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
-            {layerExercises.map((exercise) => (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                expanded={expandedId === exercise.id}
-                onToggle={() => setExpandedId(expandedId === exercise.id ? null : exercise.id)}
-                isFav={favIds.has(exercise.id)}
-                toggling={togglingFav.has(exercise.id)}
-                onFav={() => toggleFav(exercise.id)}
-                showFav={!!user}
-                inPlan={classPlan.has(exercise.id)}
-                onTogglePlan={() => togglePlanExercise(exercise.id)}
-                onMuscleClick={(muscle) => { setActiveMuscles(new Set([muscle])); setExpandedId(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                activePosture={activePosture}
-              />
-            ))}
+            {layerExercises.map((exercise) => {
+              const isExpanded = expandedId === exercise.id
+              return (
+                <div key={exercise.id} className={isExpanded ? 'lg:col-span-2' : ''}>
+                  <ExerciseCard
+                    exercise={exercise}
+                    expanded={isExpanded}
+                    onToggle={() => setExpandedId(isExpanded ? null : exercise.id)}
+                    isFav={favIds.has(exercise.id)}
+                    toggling={togglingFav.has(exercise.id)}
+                    onFav={() => toggleFav(exercise.id)}
+                    showFav={!!user}
+                    inPlan={classPlan.has(exercise.id)}
+                    onTogglePlan={() => togglePlanExercise(exercise.id)}
+                    onMuscleClick={(muscle) => { setActiveMuscles(new Set([muscle])); setExpandedId(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                    activePosture={activePosture}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
       ))}
@@ -813,8 +849,10 @@ function PosturalSection({ postures, activePosture, postureProps }: {
           const isActive = activePosture === key
           const isExpanded = isActive || expandedPostures.has(key)
 
+          const isDimmed = activePosture && !isActive
+
           return (
-            <div key={key} className={`rounded-xl transition-all duration-200 ${isExpanded ? 'bg-white/60 border border-black/[0.04]' : ''}`}>
+            <div key={key} className={`rounded-xl transition-all duration-200 ${isExpanded ? 'bg-white/60 border border-black/[0.04]' : ''} ${isDimmed ? 'opacity-25' : ''}`}>
               <button
                 onClick={() => togglePosture(key)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all ${isActive ? '' : 'hover:bg-white/40 rounded-xl'}`}
@@ -877,7 +915,7 @@ function BreathingSection({ inhale, exhale, breathNote }: { inhale: string; exha
           {steps.map((step, i) => (
             <div key={i} className="flex gap-3 items-start">
               <span className={`mt-0.5 shrink-0 text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md min-w-[38px] text-center ${
-                step.type === 'in' ? 'bg-[#5a6b8a]/10 text-[#5a6b8a]' : 'bg-[#3d6b5a]/10 text-[#3d6b5a]'
+                step.type === 'in' ? 'bg-[#1a7a7a]/10 text-[#1a7a7a]' : 'bg-[#5a8a6a]/10 text-[#5a8a6a]'
               }`}>
                 {isMultiPhase && <span className="mr-0.5 tabular-nums">{step.num}.</span>}
                 {step.type === 'in' ? 'In' : 'Out'}

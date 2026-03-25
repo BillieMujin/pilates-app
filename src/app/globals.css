@@ -3,28 +3,28 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #faf9f7;
+  --bg: #f7fafa;
   --surface: #ffffff;
-  --primary: #6b2d5b;
-  --primary-light: #8b3a6e;
-  --secondary: #c47d1e;
-  --text: #1c1118;
-  --text-muted: #7a6a72;
-  --border: #eae4e0;
+  --primary: #1a7a7a;
+  --primary-light: #2a8a8a;
+  --secondary: #c9a020;
+  --text: #1a2a5a;
+  --text-muted: #5a6a8a;
+  --border: #dce8e8;
 
-  --warmup: #6e5f66;
-  --layer1: #8b3a62;
-  --layer2: #b8860b;
-  --layer3: #5c2751;
+  --warmup: #5a6a8a;
+  --layer1: #1a7a7a;
+  --layer2: #c9a020;
+  --layer3: #1a2a5a;
 
-  --kyphosis: #8b3a62;
-  --lordosis: #b8860b;
-  --flatback: #5a7a5e;
-  --military: #3d6b5a;
-  --swayback: #a05a4a;
+  --kyphosis: #1a7a7a;
+  --lordosis: #c9a020;
+  --flatback: #5a8a6a;
+  --military: #3a6a7a;
+  --swayback: #8a6a5a;
 
-  --inhale: #5a6b8a;
-  --exhale: #3d6b5a;
+  --inhale: #1a7a7a;
+  --exhale: #5a8a6a;
 
   --font-body: 'Inter', system-ui, sans-serif;
   --font-heading: 'Playfair Display', Georgia, serif;
@@ -103,5 +103,5 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Selection color */
 ::selection {
-  background: rgba(107, 45, 91, 0.15);
+  background: rgba(26, 122, 122, 0.15);
 }

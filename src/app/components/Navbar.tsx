@@ -22,7 +22,7 @@ export default function Navbar({ user }: NavbarProps) {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/[0.04]">
       <div className="max-w-5xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm shadow-primary/20">
+          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm shadow-primary/25">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
