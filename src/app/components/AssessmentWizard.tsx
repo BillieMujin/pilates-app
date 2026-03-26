@@ -62,6 +62,11 @@ const BACK_VIEW_REGIONS = [
 interface RegionValue {
   values: string[]
   laterality?: Record<string, { right?: boolean; left?: boolean }>
+  /** For independently-sided regions: separate selections per side */
+  leftValues?: string[]
+  rightValues?: string[]
+  /** Optional notes per region */
+  regionNotes?: string
 }
 
 interface WizardState {
@@ -111,11 +116,17 @@ function createInitialState(): WizardState {
 
 /* ─── helpers ─── */
 
-/** The "neutral" options that are mutually exclusive with deviations */
-const NEUTRAL_VALUES = ['neutral', 'level']
-
+/** "neutral" is fully mutually exclusive with deviations; "level" can coexist with rotations */
 function isNeutralOption(opt: string): boolean {
-  return NEUTRAL_VALUES.includes(opt)
+  return opt === 'neutral'
+}
+
+/** Options within the same group that are mutually exclusive with each other */
+const EXCLUSIVE_GROUPS: Record<string, string[][]> = {
+  // For pelvis: "level" is exclusive with "elevated R"/"elevated L" but NOT with rotations
+  pelvis: [['level', 'elevated R', 'elevated L']],
+  // For shoulders: "level" is exclusive with elevated/depressed
+  shoulders: [['level', 'elevated R', 'elevated L', 'depressed R', 'depressed L']],
 }
 
 /** Check whether a region has any non-neutral selected value that matches a target */
@@ -151,7 +162,12 @@ function getUnansweredRegions(state: WizardState, step: number): string[] {
   return regions
     .filter(r => {
       const rv = viewData[r.key]
-      return !rv || rv.values.length === 0
+      if (!rv) return true
+      if (r.bilateral) {
+        // Bilateral regions need both left and right answered
+        return (!rv.leftValues || rv.leftValues.length === 0) || (!rv.rightValues || rv.rightValues.length === 0)
+      }
+      return rv.values.length === 0
     })
     .map(r => r.key)
 }
@@ -360,21 +376,33 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       let newLaterality = { ...(current.laterality || {}) }
 
       if (isNeutralOption(option)) {
+        // "neutral" clears everything
         newValues = current.values.includes(option) ? [] : [option]
         newLaterality = {}
       } else {
-        const withoutNeutral = current.values.filter(v => !isNeutralOption(v))
-        if (withoutNeutral.includes(option)) {
-          newValues = withoutNeutral.filter(v => v !== option)
+        // Remove neutral first
+        let working = current.values.filter(v => !isNeutralOption(v))
+
+        if (working.includes(option)) {
+          // Deselecting
+          working = working.filter(v => v !== option)
           delete newLaterality[option]
         } else {
-          newValues = [...withoutNeutral, option]
+          // Selecting: remove any exclusive-group conflicts
+          const groups = EXCLUSIVE_GROUPS[regionKey] || []
+          for (const group of groups) {
+            if (group.includes(option)) {
+              working = working.filter(v => !group.includes(v))
+            }
+          }
+          working = [...working, option]
         }
+        newValues = working
       }
 
       return {
         ...prev,
-        [viewKey]: { ...view, [regionKey]: { values: newValues, laterality: newLaterality } },
+        [viewKey]: { ...view, [regionKey]: { ...current, values: newValues, laterality: newLaterality } },
       }
     })
   }, [])
@@ -403,6 +431,74 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
             },
           },
         },
+      }
+    })
+  }, [])
+
+  /** Toggle a value for a specific side (left/right) on bilateral regions */
+  const toggleSideValue = useCallback((
+    viewKey: 'sideView' | 'frontView' | 'backView',
+    regionKey: string,
+    side: 'left' | 'right',
+    option: string,
+  ) => {
+    setState(prev => {
+      const view = prev[viewKey]
+      const current = view[regionKey] || { values: [], leftValues: [], rightValues: [] }
+      const sideKey = side === 'left' ? 'leftValues' : 'rightValues'
+      const sideVals = current[sideKey] || []
+
+      let newVals: string[]
+      if (isNeutralOption(option)) {
+        newVals = sideVals.includes(option) ? [] : [option]
+      } else {
+        let working = sideVals.filter(v => !isNeutralOption(v))
+        if (working.includes(option)) {
+          working = working.filter(v => v !== option)
+        } else {
+          // Remove exclusive-group conflicts
+          const groups = EXCLUSIVE_GROUPS[regionKey] || []
+          for (const group of groups) {
+            if (group.includes(option)) {
+              working = working.filter(v => !group.includes(v))
+            }
+          }
+          working = [...working, option]
+        }
+        newVals = working
+      }
+
+      // Also update the combined `values` for backward compat / detection
+      const otherKey = side === 'left' ? 'rightValues' : 'leftValues'
+      const otherVals = current[otherKey] || []
+      const combined = [...new Set([...newVals, ...otherVals].filter(v => !isNeutralOption(v)))]
+
+      return {
+        ...prev,
+        [viewKey]: {
+          ...view,
+          [regionKey]: {
+            ...current,
+            [sideKey]: newVals,
+            values: combined.length > 0 ? combined : (newVals.includes('neutral') || otherVals.includes('neutral') ? ['neutral'] : []),
+          },
+        },
+      }
+    })
+  }, [])
+
+  /** Update notes for a region */
+  const updateRegionNotes = useCallback((
+    viewKey: 'sideView' | 'frontView' | 'backView',
+    regionKey: string,
+    notes: string,
+  ) => {
+    setState(prev => {
+      const view = prev[viewKey]
+      const current = view[regionKey] || { values: [] }
+      return {
+        ...prev,
+        [viewKey]: { ...view, [regionKey]: { ...current, regionNotes: notes } },
       }
     })
   }, [])
@@ -500,8 +596,102 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     viewKey: 'sideView' | 'frontView' | 'backView',
   ) {
     const current = viewData[region.key] || { values: [] }
+
+    // For bilateral regions: each side is independent
+    if (region.bilateral) {
+      const leftVals = current.leftValues || []
+      const rightVals = current.rightValues || []
+      const isUnanswered = leftVals.length === 0 || rightVals.length === 0
+
+      return (
+        <div
+          key={region.key}
+          className={`bg-white rounded-2xl border p-5 sm:p-6 transition-all ${
+            isUnanswered
+              ? 'border-l-[3px] border-l-amber-400 border-t-border border-r-border border-b-border bg-amber-50/30'
+              : 'border-border'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-heading text-[15px] font-semibold text-foreground">{region.label}</h4>
+            {isUnanswered && (
+              <span className="text-[11px] font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-lg">
+                Required
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Left side */}
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2 text-center">Left</div>
+              <div className="space-y-1.5">
+                {region.options.map(opt => {
+                  const isSelected = leftVals.includes(opt)
+                  return (
+                    <label
+                      key={opt}
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl cursor-pointer transition-all text-[12px] ${
+                        isSelected
+                          ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                          : 'hover:bg-black/[0.02] border border-transparent'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSideValue(viewKey, region.key, 'left', opt)}
+                        className="w-3.5 h-3.5 accent-primary rounded"
+                      />
+                      <span className="capitalize leading-tight">{opt}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+            {/* Right side */}
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2 text-center">Right</div>
+              <div className="space-y-1.5">
+                {region.options.map(opt => {
+                  const isSelected = rightVals.includes(opt)
+                  return (
+                    <label
+                      key={opt}
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl cursor-pointer transition-all text-[12px] ${
+                        isSelected
+                          ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                          : 'hover:bg-black/[0.02] border border-transparent'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSideValue(viewKey, region.key, 'right', opt)}
+                        className="w-3.5 h-3.5 accent-primary rounded"
+                      />
+                      <span className="capitalize leading-tight">{opt}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+          {/* Notes */}
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <input
+              type="text"
+              value={current.regionNotes || ''}
+              onChange={e => updateRegionNotes(viewKey, region.key, e.target.value)}
+              placeholder="Notes..."
+              className="w-full text-[12px] px-3 py-1.5 bg-background border border-border/60 rounded-lg focus:outline-none focus:border-primary/30 text-muted placeholder:text-foreground/20 transition-all"
+            />
+          </div>
+        </div>
+      )
+    }
+
+    // Non-bilateral region (original logic)
     const isUnanswered = current.values.length === 0
-    const hasDeviation = current.values.some(v => !isNeutralOption(v))
 
     return (
       <div
@@ -528,49 +718,35 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         <div className="space-y-2">
           {region.options.map(opt => {
             const isSelected = current.values.includes(opt)
-            const isNeutralOpt = isNeutralOption(opt)
             return (
-              <div key={opt}>
-                <label
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
-                    isSelected
-                      ? 'bg-primary/[0.06] text-foreground border border-primary/20'
-                      : 'hover:bg-black/[0.02] border border-transparent'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleValue(viewKey, region.key, opt)}
-                    className="w-4 h-4 accent-primary rounded"
-                  />
-                  <span className="capitalize">{opt}</span>
-                </label>
-                {region.bilateral && isSelected && !isNeutralOpt && (
-                  <div className="ml-10 mt-1 mb-1 flex items-center gap-3">
-                    <label className="flex items-center gap-1.5 text-[12px] text-muted">
-                      <input
-                        type="checkbox"
-                        checked={current.laterality?.[opt]?.right || false}
-                        onChange={e => updateLateral(viewKey, region.key, opt, 'right', e.target.checked)}
-                        className="w-3.5 h-3.5 accent-primary"
-                      />
-                      Right
-                    </label>
-                    <label className="flex items-center gap-1.5 text-[12px] text-muted">
-                      <input
-                        type="checkbox"
-                        checked={current.laterality?.[opt]?.left || false}
-                        onChange={e => updateLateral(viewKey, region.key, opt, 'left', e.target.checked)}
-                        className="w-3.5 h-3.5 accent-primary"
-                      />
-                      Left
-                    </label>
-                  </div>
-                )}
-              </div>
+              <label
+                key={opt}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
+                  isSelected
+                    ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                    : 'hover:bg-black/[0.02] border border-transparent'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleValue(viewKey, region.key, opt)}
+                  className="w-4 h-4 accent-primary rounded"
+                />
+                <span className="capitalize">{opt}</span>
+              </label>
             )
           })}
+        </div>
+        {/* Notes */}
+        <div className="mt-3 pt-3 border-t border-border/50">
+          <input
+            type="text"
+            value={current.regionNotes || ''}
+            onChange={e => updateRegionNotes(viewKey, region.key, e.target.value)}
+            placeholder="Notes..."
+            className="w-full text-[12px] px-3 py-1.5 bg-background border border-border/60 rounded-lg focus:outline-none focus:border-primary/30 text-muted placeholder:text-foreground/20 transition-all"
+          />
         </div>
       </div>
     )
@@ -786,9 +962,82 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
           </div>
         )
 
-      case 5:
+      case 5: {
+        // Collect all deviations across all views for the findings summary
+        const allFindings: { view: string; region: string; finding: string; notes?: string }[] = []
+        const viewConfigs: [string, Record<string, RegionValue>, typeof SIDE_VIEW_REGIONS][] = [
+          ['Side View', state.sideView, SIDE_VIEW_REGIONS],
+          ['Front View', state.frontView, FRONT_VIEW_REGIONS],
+          ['Back View', state.backView, BACK_VIEW_REGIONS],
+        ]
+        for (const [viewName, viewData, regions] of viewConfigs) {
+          for (const r of regions) {
+            const rv = viewData[r.key]
+            if (!rv) continue
+            if (r.bilateral) {
+              const leftVals = (rv.leftValues || []).filter(v => !isNeutralOption(v))
+              const rightVals = (rv.rightValues || []).filter(v => !isNeutralOption(v))
+              for (const v of leftVals) {
+                allFindings.push({ view: viewName, region: r.label, finding: `Left: ${v}` })
+              }
+              for (const v of rightVals) {
+                allFindings.push({ view: viewName, region: r.label, finding: `Right: ${v}` })
+              }
+            } else {
+              const deviations = rv.values.filter(v => !isNeutralOption(v) && v !== 'level')
+              for (const v of deviations) {
+                allFindings.push({ view: viewName, region: r.label, finding: v })
+              }
+            }
+            if (rv.regionNotes) {
+              allFindings.push({ view: viewName, region: r.label, finding: `Note: ${rv.regionNotes}`, notes: rv.regionNotes })
+            }
+          }
+        }
+
         return (
           <div className="space-y-6">
+            {/* Findings Summary */}
+            {allFindings.length > 0 && (
+              <div className="bg-white rounded-2xl border border-border p-6">
+                <h3 className="font-heading text-lg font-semibold text-foreground mb-4">Findings Summary</h3>
+                {viewConfigs.map(([viewName]) => {
+                  const viewFindings = allFindings.filter(f => f.view === viewName)
+                  if (viewFindings.length === 0) return null
+                  return (
+                    <div key={viewName} className="mb-4 last:mb-0">
+                      <h4 className="text-[12px] font-bold uppercase tracking-wider text-muted mb-2">{viewName}</h4>
+                      <div className="space-y-1">
+                        {viewFindings.map((f, i) => (
+                          <div
+                            key={i}
+                            className={`flex items-start gap-2 text-[13px] px-3 py-2 rounded-lg ${
+                              f.notes ? 'bg-secondary/[0.05] text-secondary' : 'bg-primary/[0.04] text-foreground'
+                            }`}
+                          >
+                            <span className="font-medium text-foreground/60 shrink-0 w-28">{f.region}</span>
+                            <span className="capitalize">{f.finding}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                {state.spineSequencing.flatAreas && (
+                  <div className="mt-3 text-[13px] px-3 py-2 rounded-lg bg-primary/[0.04]">
+                    <span className="font-medium text-foreground/60">Spine sequencing:</span>{' '}
+                    <span>Flat areas — {state.spineSequencing.flatAreasWhere}</span>
+                  </div>
+                )}
+                {state.spineSequencing.imbalances && (
+                  <div className="mt-1 text-[13px] px-3 py-2 rounded-lg bg-primary/[0.04]">
+                    <span className="font-medium text-foreground/60">Spine sequencing:</span>{' '}
+                    <span>Imbalances — {state.spineSequencing.imbalancesWhere}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Posture Detection Result */}
             <div className="bg-white rounded-2xl border border-border p-6">
               <h3 className="font-heading text-lg font-semibold text-foreground mb-4">Detected Posture Type</h3>
@@ -971,6 +1220,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
             </div>
           </div>
         )
+      }
 
       default:
         return null
