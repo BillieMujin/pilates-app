@@ -61,7 +61,7 @@ const BACK_VIEW_REGIONS = [
 /* ─── types ─── */
 
 interface RegionValue {
-  value: string
+  values: string[]
   right?: boolean
   left?: boolean
 }
@@ -111,25 +111,78 @@ function createInitialState(): WizardState {
   }
 }
 
+/* ─── helpers ─── */
+
+/** The "neutral" options that are mutually exclusive with deviations */
+const NEUTRAL_VALUES = ['neutral', 'level']
+
+function isNeutralOption(opt: string): boolean {
+  return NEUTRAL_VALUES.includes(opt)
+}
+
+/** Check whether a region has any non-neutral selected value that matches a target */
+function regionHasValue(rv: RegionValue | undefined, target: string): boolean {
+  if (!rv) return false
+  return rv.values.includes(target)
+}
+
+/** Get the list of regions for a given step */
+function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string }[] {
+  switch (step) {
+    case 1: return SIDE_VIEW_REGIONS
+    case 2: return FRONT_VIEW_REGIONS
+    case 3: return BACK_VIEW_REGIONS
+    default: return []
+  }
+}
+
+/** Get the view data for a given step */
+function getViewDataForStep(state: WizardState, step: number): Record<string, RegionValue> {
+  switch (step) {
+    case 1: return state.sideView
+    case 2: return state.frontView
+    case 3: return state.backView
+    default: return {}
+  }
+}
+
+/** Check which regions are unanswered in a step */
+function getUnansweredRegions(state: WizardState, step: number): string[] {
+  const regions = getRegionsForStep(step)
+  const viewData = getViewDataForStep(state, step)
+  return regions
+    .filter(r => {
+      const rv = viewData[r.key]
+      return !rv || rv.values.length === 0
+    })
+    .map(r => r.key)
+}
+
 /* ─── posture detection ─── */
 
 function detectPosture(state: WizardState): { posture: string | null; scores: Record<string, { score: number; total: number; markers: string[] }> } {
   const sv = state.sideView
   const scores: Record<string, { score: number; total: number; markers: string[] }> = {}
 
-  // Helper
-  const val = (key: string) => sv[key]?.value || 'neutral'
+  // Helper: check if a region's selected values include a specific value
+  const has = (key: string, target: string) => regionHasValue(sv[key], target)
+  // Helper: check if a region has ONLY neutral/level selected (or nothing non-neutral)
+  const isNeutral = (key: string) => {
+    const rv = sv[key]
+    if (!rv || rv.values.length === 0) return true
+    return rv.values.every(v => isNeutralOption(v))
+  }
 
   // KYPHOSIS-LORDOSIS
   {
     const markers: string[] = []
     let score = 0
     const total = 5
-    if (val('upper_thoracic') === 'excessive flexion (increased curve)' || val('lower_thoracic') === 'excessive flexion (increased curve)') { score++; markers.push('Thoracic excessive flexion') }
-    if (val('lumbar_spine') === 'excessive extension (increased curve)') { score++; markers.push('Lumbar excessive extension') }
-    if (val('pelvis') === 'anterior tilt') { score++; markers.push('Anterior pelvic tilt') }
-    if (val('head') === 'forward') { score++; markers.push('Forward head') }
-    if (val('cervical_spine') === 'excessive extension (increased curve)') { score++; markers.push('Cervical excessive extension') }
+    if (has('upper_thoracic', 'excessive flexion (increased curve)') || has('lower_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Thoracic excessive flexion') }
+    if (has('lumbar_spine', 'excessive extension (increased curve)')) { score++; markers.push('Lumbar excessive extension') }
+    if (has('pelvis', 'anterior tilt')) { score++; markers.push('Anterior pelvic tilt') }
+    if (has('head', 'forward')) { score++; markers.push('Forward head') }
+    if (has('cervical_spine', 'excessive extension (increased curve)')) { score++; markers.push('Cervical excessive extension') }
     scores['kyphosis'] = { score, total, markers }
   }
 
@@ -138,10 +191,10 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 4
-    if (val('upper_thoracic') === 'excessive flexion (increased curve)' || val('lower_thoracic') === 'excessive flexion (increased curve)') { score++; markers.push('Thoracic excessive flexion') }
-    if (val('lumbar_spine') === 'neutral' || val('lumbar_spine') === 'decreased curve (flat)') { score++; markers.push('Lumbar neutral/flat') }
-    if (val('pelvis') === 'neutral' || val('pelvis') === 'posterior tilt') { score++; markers.push('Pelvis neutral/posterior') }
-    if (val('head') === 'forward') { score++; markers.push('Forward head') }
+    if (has('upper_thoracic', 'excessive flexion (increased curve)') || has('lower_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Thoracic excessive flexion') }
+    if (isNeutral('lumbar_spine') || has('lumbar_spine', 'decreased curve (flat)')) { score++; markers.push('Lumbar neutral/flat') }
+    if (isNeutral('pelvis') || has('pelvis', 'posterior tilt')) { score++; markers.push('Pelvis neutral/posterior') }
+    if (has('head', 'forward')) { score++; markers.push('Forward head') }
     scores['kyphosis_only'] = { score, total, markers }
   }
 
@@ -150,10 +203,10 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 4
-    if (val('lumbar_spine') === 'excessive extension (increased curve)') { score++; markers.push('Lumbar excessive extension') }
-    if (val('pelvis') === 'anterior tilt') { score++; markers.push('Anterior pelvic tilt') }
-    if (val('upper_thoracic') === 'neutral' && val('lower_thoracic') === 'neutral') { score++; markers.push('Thoracic neutral') }
-    if (val('head') === 'neutral' || val('head') === 'forward') { score++; markers.push('Head neutral/slight forward') }
+    if (has('lumbar_spine', 'excessive extension (increased curve)')) { score++; markers.push('Lumbar excessive extension') }
+    if (has('pelvis', 'anterior tilt')) { score++; markers.push('Anterior pelvic tilt') }
+    if (isNeutral('upper_thoracic') && isNeutral('lower_thoracic')) { score++; markers.push('Thoracic neutral') }
+    if (isNeutral('head') || has('head', 'forward')) { score++; markers.push('Head neutral/slight forward') }
     scores['lordosis'] = { score, total, markers }
   }
 
@@ -162,11 +215,11 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 5
-    if (val('lumbar_spine') === 'decreased curve (flat)') { score++; markers.push('Lumbar flat') }
-    if (val('pelvis') === 'posterior tilt') { score++; markers.push('Posterior pelvic tilt') }
-    if (val('upper_thoracic') === 'excessive flexion (increased curve)') { score++; markers.push('Upper thoracic flexion') }
-    if (val('lower_thoracic') === 'neutral' || val('lower_thoracic') === 'decreased curve (flat)') { score++; markers.push('Lower thoracic neutral/flat') }
-    if (val('head') === 'forward') { score++; markers.push('Forward head') }
+    if (has('lumbar_spine', 'decreased curve (flat)')) { score++; markers.push('Lumbar flat') }
+    if (has('pelvis', 'posterior tilt')) { score++; markers.push('Posterior pelvic tilt') }
+    if (has('upper_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Upper thoracic flexion') }
+    if (isNeutral('lower_thoracic') || has('lower_thoracic', 'decreased curve (flat)')) { score++; markers.push('Lower thoracic neutral/flat') }
+    if (has('head', 'forward')) { score++; markers.push('Forward head') }
     scores['flatback'] = { score, total, markers }
   }
 
@@ -175,11 +228,11 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 5
-    if (val('lumbar_spine') === 'excessive extension (increased curve)') { score++; markers.push('Lumbar excessive extension') }
-    if (val('pelvis') === 'anterior tilt') { score++; markers.push('Anterior pelvic tilt') }
-    if (val('upper_thoracic') === 'neutral' || val('lower_thoracic') === 'neutral') { score++; markers.push('Thoracic neutral') }
-    if (val('cervical_spine') === 'neutral') { score++; markers.push('Cervical neutral') }
-    if (val('head') === 'neutral') { score++; markers.push('Head neutral') }
+    if (has('lumbar_spine', 'excessive extension (increased curve)')) { score++; markers.push('Lumbar excessive extension') }
+    if (has('pelvis', 'anterior tilt')) { score++; markers.push('Anterior pelvic tilt') }
+    if (isNeutral('upper_thoracic') || isNeutral('lower_thoracic')) { score++; markers.push('Thoracic neutral') }
+    if (isNeutral('cervical_spine')) { score++; markers.push('Cervical neutral') }
+    if (isNeutral('head')) { score++; markers.push('Head neutral') }
     scores['military'] = { score, total, markers }
   }
 
@@ -188,12 +241,12 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 6
-    if (val('pelvis') === 'posterior tilt') { score++; markers.push('Posterior pelvic tilt') }
-    if (val('lumbar_spine') === 'decreased curve (flat)') { score++; markers.push('Lumbar flat') }
-    if (val('upper_thoracic') === 'excessive flexion (increased curve)' || val('lower_thoracic') === 'excessive flexion (increased curve)') { score++; markers.push('Thoracic excessive flexion (long kyphosis)') }
-    if (val('head') === 'forward') { score++; markers.push('Forward head') }
-    if (val('hip_joints') === 'extended') { score++; markers.push('Hips extended') }
-    if (val('knees') === 'hyperextended') { score++; markers.push('Knees hyperextended') }
+    if (has('pelvis', 'posterior tilt')) { score++; markers.push('Posterior pelvic tilt') }
+    if (has('lumbar_spine', 'decreased curve (flat)')) { score++; markers.push('Lumbar flat') }
+    if (has('upper_thoracic', 'excessive flexion (increased curve)') || has('lower_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Thoracic excessive flexion (long kyphosis)') }
+    if (has('head', 'forward')) { score++; markers.push('Forward head') }
+    if (has('hip_joints', 'extended')) { score++; markers.push('Hips extended') }
+    if (has('knees', 'hyperextended')) { score++; markers.push('Knees hyperextended') }
     scores['swayback'] = { score, total, markers }
   }
 
@@ -228,7 +281,26 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
         const parsed = JSON.parse(saved)
-        setState(parsed.state)
+        // Migration: convert old single-value format to new array format
+        const migrateView = (view: Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>) => {
+          const migrated: Record<string, RegionValue> = {}
+          for (const [key, rv] of Object.entries(view || {})) {
+            if (rv.values) {
+              migrated[key] = rv as RegionValue
+            } else if (rv.value) {
+              migrated[key] = { values: [rv.value], right: rv.right, left: rv.left }
+            } else {
+              migrated[key] = { values: [], right: rv.right, left: rv.left }
+            }
+          }
+          return migrated
+        }
+        setState({
+          ...parsed.state,
+          sideView: migrateView(parsed.state.sideView),
+          frontView: migrateView(parsed.state.frontView),
+          backView: migrateView(parsed.state.backView),
+        })
         setStep(parsed.step || 0)
         setEditingId(parsed.editingId || null)
       }
@@ -273,47 +345,61 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     return groups
   }, [correctiveExercises])
 
+  // Validation: which regions are unanswered in the current step
+  const unansweredRegions = useMemo(() => getUnansweredRegions(state, step), [state, step])
+
   /* ─── handlers ─── */
 
-  const updateSideView = useCallback((key: string, value: string) => {
-    setState(prev => ({
-      ...prev,
-      sideView: { ...prev.sideView, [key]: { ...prev.sideView[key], value } },
-    }))
+  const toggleValue = useCallback((
+    viewKey: 'sideView' | 'frontView' | 'backView',
+    regionKey: string,
+    option: string,
+  ) => {
+    setState(prev => {
+      const view = prev[viewKey]
+      const current = view[regionKey] || { values: [] }
+      let newValues: string[]
+
+      if (isNeutralOption(option)) {
+        // Selecting neutral/level clears all other selections
+        newValues = current.values.includes(option) ? [] : [option]
+      } else {
+        // Selecting a deviation: remove any neutral/level, then toggle this option
+        const withoutNeutral = current.values.filter(v => !isNeutralOption(v))
+        if (withoutNeutral.includes(option)) {
+          newValues = withoutNeutral.filter(v => v !== option)
+        } else {
+          newValues = [...withoutNeutral, option]
+        }
+      }
+
+      // Clear bilateral flags if going back to neutral/empty or all neutral
+      const hasDeviation = newValues.some(v => !isNeutralOption(v))
+      const updatedRegion: RegionValue = {
+        values: newValues,
+        right: hasDeviation ? current.right : undefined,
+        left: hasDeviation ? current.left : undefined,
+      }
+
+      return {
+        ...prev,
+        [viewKey]: { ...view, [regionKey]: updatedRegion },
+      }
+    })
   }, [])
 
-  const updateSideViewLateral = useCallback((key: string, side: 'right' | 'left', checked: boolean) => {
+  const updateLateral = useCallback((
+    viewKey: 'sideView' | 'frontView' | 'backView',
+    regionKey: string,
+    side: 'right' | 'left',
+    checked: boolean,
+  ) => {
     setState(prev => ({
       ...prev,
-      sideView: { ...prev.sideView, [key]: { ...prev.sideView[key], [side]: checked } },
-    }))
-  }, [])
-
-  const updateFrontView = useCallback((key: string, value: string) => {
-    setState(prev => ({
-      ...prev,
-      frontView: { ...prev.frontView, [key]: { ...prev.frontView[key], value } },
-    }))
-  }, [])
-
-  const updateFrontViewLateral = useCallback((key: string, side: 'right' | 'left', checked: boolean) => {
-    setState(prev => ({
-      ...prev,
-      frontView: { ...prev.frontView, [key]: { ...prev.frontView[key], [side]: checked } },
-    }))
-  }, [])
-
-  const updateBackView = useCallback((key: string, value: string) => {
-    setState(prev => ({
-      ...prev,
-      backView: { ...prev.backView, [key]: { ...prev.backView[key], value } },
-    }))
-  }, [])
-
-  const updateBackViewLateral = useCallback((key: string, side: 'right' | 'left', checked: boolean) => {
-    setState(prev => ({
-      ...prev,
-      backView: { ...prev.backView, [key]: { ...prev.backView[key], [side]: checked } },
+      [viewKey]: {
+        ...prev[viewKey],
+        [regionKey]: { ...prev[viewKey][regionKey], [side]: checked },
+      },
     }))
   }, [])
 
@@ -357,12 +443,27 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   }
 
   const loadAssessment = (a: PosturalAssessment) => {
+    // Migration helper for loaded assessments (old format may have `value` instead of `values`)
+    const migrateView = (view: Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>) => {
+      const migrated: Record<string, RegionValue> = {}
+      for (const [key, rv] of Object.entries(view || {})) {
+        if (rv.values) {
+          migrated[key] = rv as RegionValue
+        } else if (rv.value) {
+          migrated[key] = { values: [rv.value], right: rv.right, left: rv.left }
+        } else {
+          migrated[key] = { values: [], right: rv.right, left: rv.left }
+        }
+      }
+      return migrated
+    }
+
     setState({
       clientName: a.client_name,
       assessmentDate: a.assessment_date,
-      sideView: a.side_view as Record<string, RegionValue>,
-      frontView: a.front_view as Record<string, RegionValue>,
-      backView: a.back_view as Record<string, RegionValue>,
+      sideView: migrateView(a.side_view as Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>),
+      frontView: migrateView(a.front_view as Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>),
+      backView: migrateView(a.back_view as Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>),
       spineSequencing: a.spine_sequencing as WizardState['spineSequencing'],
       suggestedPosture: a.suggested_posture,
       confirmedPosture: a.confirmed_posture,
@@ -380,55 +481,77 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  const canProceed = step === 0 ? state.clientName.trim().length > 0 : true
+  // canProceed: step 0 requires client name; steps 1-3 require all regions answered
+  const canProceed = useMemo(() => {
+    if (step === 0) return state.clientName.trim().length > 0
+    if (step >= 1 && step <= 3) return unansweredRegions.length === 0
+    return true
+  }, [step, state.clientName, unansweredRegions])
 
   /* ─── render helpers ─── */
 
   function renderRegionCard(
     region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string },
     viewData: Record<string, RegionValue>,
-    updateValue: (key: string, value: string) => void,
-    updateLateral: (key: string, side: 'right' | 'left', checked: boolean) => void,
+    viewKey: 'sideView' | 'frontView' | 'backView',
   ) {
-    const current = viewData[region.key] || { value: '' }
+    const current = viewData[region.key] || { values: [] }
+    const isUnanswered = current.values.length === 0
+    const hasDeviation = current.values.some(v => !isNeutralOption(v))
+
     return (
-      <div key={region.key} className="bg-white rounded-2xl border border-border p-5 sm:p-6">
-        <h4 className="font-heading text-[15px] font-semibold text-foreground mb-3">{region.label}</h4>
+      <div
+        key={region.key}
+        className={`bg-white rounded-2xl border p-5 sm:p-6 transition-all ${
+          isUnanswered
+            ? 'border-l-[3px] border-l-amber-400 border-t-border border-r-border border-b-border bg-amber-50/30'
+            : 'border-border'
+        }`}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-heading text-[15px] font-semibold text-foreground">{region.label}</h4>
+          {isUnanswered && (
+            <span className="text-[11px] font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-lg">
+              Required
+            </span>
+          )}
+        </div>
         {region.guidance && (
           <p className="text-[12px] text-muted mb-3 bg-background rounded-xl px-3 py-2 border border-border">
             {region.guidance}
           </p>
         )}
         <div className="space-y-2">
-          {region.options.map(opt => (
-            <label
-              key={opt}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
-                current.value === opt
-                  ? 'bg-primary/[0.06] text-foreground border border-primary/20'
-                  : 'hover:bg-black/[0.02] border border-transparent'
-              }`}
-            >
-              <input
-                type="radio"
-                name={`${region.key}-${region.label}`}
-                value={opt}
-                checked={current.value === opt}
-                onChange={() => updateValue(region.key, opt)}
-                className="w-4 h-4 accent-primary"
-              />
-              <span className="capitalize">{opt}</span>
-            </label>
-          ))}
+          {region.options.map(opt => {
+            const isSelected = current.values.includes(opt)
+            return (
+              <label
+                key={opt}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
+                  isSelected
+                    ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                    : 'hover:bg-black/[0.02] border border-transparent'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleValue(viewKey, region.key, opt)}
+                  className="w-4 h-4 accent-primary rounded"
+                />
+                <span className="capitalize">{opt}</span>
+              </label>
+            )
+          })}
         </div>
-        {region.bilateral && current.value && current.value !== 'neutral' && current.value !== 'level' && (
+        {region.bilateral && hasDeviation && (
           <div className="mt-3 flex items-center gap-4 pl-3">
             <span className="text-[12px] text-muted font-medium">Affected side:</span>
             <label className="flex items-center gap-1.5 text-[13px]">
               <input
                 type="checkbox"
                 checked={current.right || false}
-                onChange={e => updateLateral(region.key, 'right', e.target.checked)}
+                onChange={e => updateLateral(viewKey, region.key, 'right', e.target.checked)}
                 className="w-3.5 h-3.5 accent-primary"
               />
               Right
@@ -437,7 +560,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
               <input
                 type="checkbox"
                 checked={current.left || false}
-                onChange={e => updateLateral(region.key, 'left', e.target.checked)}
+                onChange={e => updateLateral(viewKey, region.key, 'left', e.target.checked)}
                 className="w-3.5 h-3.5 accent-primary"
               />
               Left
@@ -516,22 +639,52 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
 
       case 1:
         return (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {SIDE_VIEW_REGIONS.map(r => renderRegionCard(r, state.sideView, updateSideView, updateSideViewLateral))}
+          <div>
+            {unansweredRegions.length > 0 && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
+                <span className="font-medium">{unansweredRegions.length} region{unansweredRegions.length > 1 ? 's' : ''} still need{unansweredRegions.length === 1 ? 's' : ''} an answer</span>
+                <span className="text-amber-600 ml-1">
+                  — {getRegionsForStep(1).filter(r => unansweredRegions.includes(r.key)).map(r => r.label).join(', ')}
+                </span>
+              </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {SIDE_VIEW_REGIONS.map(r => renderRegionCard(r, state.sideView, 'sideView'))}
+            </div>
           </div>
         )
 
       case 2:
         return (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {FRONT_VIEW_REGIONS.map(r => renderRegionCard(r, state.frontView, updateFrontView, updateFrontViewLateral))}
+          <div>
+            {unansweredRegions.length > 0 && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
+                <span className="font-medium">{unansweredRegions.length} region{unansweredRegions.length > 1 ? 's' : ''} still need{unansweredRegions.length === 1 ? 's' : ''} an answer</span>
+                <span className="text-amber-600 ml-1">
+                  — {getRegionsForStep(2).filter(r => unansweredRegions.includes(r.key)).map(r => r.label).join(', ')}
+                </span>
+              </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {FRONT_VIEW_REGIONS.map(r => renderRegionCard(r, state.frontView, 'frontView'))}
+            </div>
           </div>
         )
 
       case 3:
         return (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {BACK_VIEW_REGIONS.map(r => renderRegionCard(r, state.backView, updateBackView, updateBackViewLateral))}
+          <div>
+            {unansweredRegions.length > 0 && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
+                <span className="font-medium">{unansweredRegions.length} region{unansweredRegions.length > 1 ? 's' : ''} still need{unansweredRegions.length === 1 ? 's' : ''} an answer</span>
+                <span className="text-amber-600 ml-1">
+                  — {getRegionsForStep(3).filter(r => unansweredRegions.includes(r.key)).map(r => r.label).join(', ')}
+                </span>
+              </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {BACK_VIEW_REGIONS.map(r => renderRegionCard(r, state.backView, 'backView'))}
+            </div>
           </div>
         )
 
@@ -853,7 +1006,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         </h2>
         {step >= 1 && step <= 3 && (
           <p className="text-[13px] text-muted mt-1">
-            Select the observed position for each body region.
+            Select the observed position(s) for each body region. Multiple selections allowed.
           </p>
         )}
       </div>
