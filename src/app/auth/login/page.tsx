@@ -58,7 +58,7 @@ export default function LoginPage() {
             Welcome Back
           </h1>
           <p className="text-sm text-muted mt-1">
-            Sign in to access your favorites
+            Sign in to access the app
           </p>
         </div>
 

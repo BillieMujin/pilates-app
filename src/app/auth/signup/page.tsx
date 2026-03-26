@@ -69,7 +69,7 @@ export default function SignUpPage() {
             Create Account
           </h1>
           <p className="text-sm text-muted mt-1">
-            Sign up to save your favourite exercises
+            Create an account to access the app
           </p>
         </div>
 
