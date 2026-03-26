@@ -22,24 +22,24 @@ const STORAGE_KEY = 'pilates_assessment_draft'
 
 /* ─── side view regions ─── */
 const SIDE_VIEW_REGIONS = [
-  { key: 'head', label: 'Head', options: ['neutral', 'forward', 'retracted'], bilateral: false },
-  { key: 'cervical_spine', label: 'Cervical Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive extension)'], bilateral: false },
-  { key: 'upper_thoracic', label: 'Upper Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive flexion)'], bilateral: false },
-  { key: 'lower_thoracic', label: 'Lower Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive flexion)'], bilateral: false },
-  { key: 'lumbar_spine', label: 'Lumbar Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive extension)'], bilateral: false },
-  { key: 'pelvis', label: 'Pelvis', options: ['neutral', 'anterior tilt', 'posterior tilt'], bilateral: false },
-  { key: 'hip_joints', label: 'Hip Joints', options: ['neutral', 'flexed', 'extended'], bilateral: true },
-  { key: 'knees', label: 'Knees', options: ['neutral', 'hyperextended', 'flexed'], bilateral: true },
   { key: 'ankle_joints', label: 'Ankle Joints', options: ['neutral', 'plantar flexed', 'dorsiflexed'], bilateral: true },
+  { key: 'knees', label: 'Knees', options: ['neutral', 'hyperextended', 'flexed'], bilateral: true },
+  { key: 'hip_joints', label: 'Hip Joints', options: ['neutral', 'flexed', 'extended'], bilateral: true },
+  { key: 'pelvis', label: 'Pelvis', options: ['neutral', 'anterior tilt', 'posterior tilt'], bilateral: false },
+  { key: 'lumbar_spine', label: 'Lumbar Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive extension)'], bilateral: false },
+  { key: 'lower_thoracic', label: 'Lower Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive flexion)'], bilateral: false },
+  { key: 'upper_thoracic', label: 'Upper Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive flexion)'], bilateral: false },
+  { key: 'cervical_spine', label: 'Cervical Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive extension)'], bilateral: false },
+  { key: 'head', label: 'Head', options: ['neutral', 'forward', 'retracted'], bilateral: false },
 ]
 
 /* ─── front view regions ─── */
 const FRONT_VIEW_REGIONS = [
   { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
-  { key: 'knees', label: 'Knees', options: ['neutral', 'knock-kneed (genu valgum)', 'bow-legged (genu varum)'], bilateral: false },
+  { key: 'knees', label: 'Knees', options: ['neutral', 'knock-kneed', 'bow-legged'], bilateral: false, hasSubOption: true },
   { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated R', 'elevated L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
   { key: 'rib_cage', label: 'Rib Cage', options: ['neutral', 'elevated', 'shifted R', 'shifted L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
-  { key: 'shoulders', label: 'Shoulders', options: ['level', 'elevated R', 'elevated L', 'depressed R', 'depressed L'], bilateral: false },
+  { key: 'shoulders', label: 'Shoulders', options: ['neutral', 'elevated', 'depressed'], bilateral: true },
   { key: 'head', label: 'Head', options: ['neutral', 'tilted R', 'tilted L', 'shifted R', 'shifted L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
 ]
 
@@ -51,10 +51,19 @@ const BACK_VIEW_REGIONS = [
   {
     key: 'scapulae',
     label: 'Scapulae',
-    options: ['neutral', 'protracted', 'retracted', 'elevated', 'depressed', 'upwardly rotated', 'downwardly rotated', 'winging', 'anteriorly tipped'],
+    options: ['neutral', 'protracted', 'retracted', 'elevated', 'depressed', 'upwardly rotated', 'downwardly rotated', 'winging', 'anterior tilt'],
     bilateral: true,
+    hasClusters: true,
   },
   { key: 'humeri', label: 'Humeri', options: ['neutral', 'medially rotated'], bilateral: true },
+]
+
+/* ─── scapulae clusters ─── */
+const SCAPULAE_CLUSTERS = [
+  { label: 'Position', options: ['neutral', 'protracted', 'retracted'] },
+  { label: 'Elevation', options: ['elevated', 'depressed'] },
+  { label: 'Rotation', options: ['upwardly rotated', 'downwardly rotated'] },
+  { label: 'Other', options: ['winging', 'anterior tilt'] },
 ]
 
 /* ─── types ─── */
@@ -67,6 +76,8 @@ interface RegionValue {
   rightValues?: string[]
   /** Optional notes per region */
   regionNotes?: string
+  /** Sub-option e.g. 'functional' or 'structural' for knees */
+  subOption?: string
 }
 
 interface WizardState {
@@ -123,10 +134,19 @@ function isNeutralOption(opt: string): boolean {
 
 /** Options within the same group that are mutually exclusive with each other */
 const EXCLUSIVE_GROUPS: Record<string, string[][]> = {
-  // For pelvis: "level" is exclusive with "elevated R"/"elevated L" but NOT with rotations
-  pelvis: [['level', 'elevated R', 'elevated L']],
-  // For shoulders: "level" is exclusive with elevated/depressed
-  shoulders: [['level', 'elevated R', 'elevated L', 'depressed R', 'depressed L']],
+  pelvis: [
+    ['level', 'elevated R', 'elevated L'],
+    ['rotated clockwise', 'rotated counter-clockwise'],
+  ],
+  rib_cage: [
+    ['shifted R', 'shifted L'],
+    ['rotated clockwise', 'rotated counter-clockwise'],
+  ],
+  head: [
+    ['tilted R', 'tilted L'],
+    ['shifted R', 'shifted L'],
+    ['rotated clockwise', 'rotated counter-clockwise'],
+  ],
 }
 
 /** Check whether a region has any non-neutral selected value that matches a target */
@@ -136,7 +156,7 @@ function regionHasValue(rv: RegionValue | undefined, target: string): boolean {
 }
 
 /** Get the list of regions for a given step */
-function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string }[] {
+function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean }[] {
   switch (step) {
     case 1: return SIDE_VIEW_REGIONS
     case 2: return FRONT_VIEW_REGIONS
@@ -337,6 +357,11 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     }
   }, [step, detection.posture])
 
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step])
+
   // Corrective exercises for the detected/confirmed posture
   const correctiveExercises = useMemo(() => {
     const postureKey = state.confirmedPosture || state.suggestedPosture
@@ -435,7 +460,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     })
   }, [])
 
-  /** Toggle a value for a specific side (left/right) on bilateral regions */
+  /** Toggle a value for a specific side (left/right) on bilateral regions — single-select per side */
   const toggleSideValue = useCallback((
     viewKey: 'sideView' | 'frontView' | 'backView',
     regionKey: string,
@@ -448,27 +473,14 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       const sideKey = side === 'left' ? 'leftValues' : 'rightValues'
       const sideVals = current[sideKey] || []
 
+      // Single-select: clicking same option deselects, clicking different replaces
       let newVals: string[]
-      if (isNeutralOption(option)) {
-        newVals = sideVals.includes(option) ? [] : [option]
+      if (sideVals.includes(option)) {
+        newVals = [] // deselect
       } else {
-        let working = sideVals.filter(v => !isNeutralOption(v))
-        if (working.includes(option)) {
-          working = working.filter(v => v !== option)
-        } else {
-          // Remove exclusive-group conflicts
-          const groups = EXCLUSIVE_GROUPS[regionKey] || []
-          for (const group of groups) {
-            if (group.includes(option)) {
-              working = working.filter(v => !group.includes(v))
-            }
-          }
-          working = [...working, option]
-        }
-        newVals = working
+        newVals = [option] // replace with single selection
       }
 
-      // Also update the combined `values` for backward compat / detection
       const otherKey = side === 'left' ? 'rightValues' : 'leftValues'
       const otherVals = current[otherKey] || []
       const combined = [...new Set([...newVals, ...otherVals].filter(v => !isNeutralOption(v)))]
@@ -481,6 +493,47 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
             ...current,
             [sideKey]: newVals,
             values: combined.length > 0 ? combined : (newVals.includes('neutral') || otherVals.includes('neutral') ? ['neutral'] : []),
+          },
+        },
+      }
+    })
+  }, [])
+
+  /** Toggle a value for a specific side within a cluster (e.g. scapulae) — single-select per cluster */
+  const toggleClusterValue = useCallback((
+    viewKey: 'sideView' | 'frontView' | 'backView',
+    regionKey: string,
+    side: 'left' | 'right',
+    option: string,
+    clusterOptions: string[],
+  ) => {
+    setState(prev => {
+      const view = prev[viewKey]
+      const current = view[regionKey] || { values: [], leftValues: [], rightValues: [] }
+      const sideKey = side === 'left' ? 'leftValues' : 'rightValues'
+      const sideVals = current[sideKey] || []
+
+      let newVals: string[]
+      if (sideVals.includes(option)) {
+        newVals = sideVals.filter(v => v !== option)
+      } else {
+        // Remove other options from same cluster, add this one
+        newVals = sideVals.filter(v => !clusterOptions.includes(v))
+        newVals.push(option)
+      }
+
+      const otherKey = side === 'left' ? 'rightValues' : 'leftValues'
+      const otherVals = current[otherKey] || []
+      const combined = [...new Set([...newVals, ...otherVals].filter(v => v !== 'neutral'))]
+
+      return {
+        ...prev,
+        [viewKey]: {
+          ...view,
+          [regionKey]: {
+            ...current,
+            [sideKey]: newVals,
+            values: combined.length > 0 ? combined : [],
           },
         },
       }
@@ -591,11 +644,87 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   /* ─── render helpers ─── */
 
   function renderRegionCard(
-    region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string },
+    region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean },
     viewData: Record<string, RegionValue>,
     viewKey: 'sideView' | 'frontView' | 'backView',
   ) {
     const current = viewData[region.key] || { values: [] }
+
+    // For bilateral regions with clusters (scapulae)
+    if (region.bilateral && region.hasClusters) {
+      const leftVals = current.leftValues || []
+      const rightVals = current.rightValues || []
+      const isUnanswered = leftVals.length === 0 || rightVals.length === 0
+
+      return (
+        <div
+          key={region.key}
+          className={`bg-white rounded-2xl border p-5 sm:p-6 transition-all ${
+            isUnanswered
+              ? 'border-l-[3px] border-l-amber-400 border-t-border border-r-border border-b-border bg-amber-50/30'
+              : 'border-border'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-heading text-[15px] font-semibold text-foreground">{region.label}</h4>
+            {isUnanswered && (
+              <span className="text-[11px] font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-lg">Required</span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {(['left', 'right'] as const).map(side => {
+              const sideVals = side === 'left' ? leftVals : rightVals
+              return (
+                <div key={side}>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2 text-center">
+                    {side === 'left' ? 'Left' : 'Right'}
+                  </div>
+                  <div className="space-y-3">
+                    {SCAPULAE_CLUSTERS.map(cluster => (
+                      <div key={cluster.label}>
+                        <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground/30 mb-1 px-1">{cluster.label}</div>
+                        <div className="space-y-1">
+                          {cluster.options.map(opt => {
+                            const isSelected = sideVals.includes(opt)
+                            return (
+                              <label
+                                key={opt}
+                                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-[11px] ${
+                                  isSelected
+                                    ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                                    : 'hover:bg-black/[0.02] border border-transparent'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleClusterValue(viewKey, region.key, side, opt, cluster.options)}
+                                  className="w-3 h-3 accent-primary rounded"
+                                />
+                                <span className="capitalize leading-tight">{opt}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <input
+              type="text"
+              value={current.regionNotes || ''}
+              onChange={e => updateRegionNotes(viewKey, region.key, e.target.value)}
+              placeholder="Notes..."
+              className="w-full text-[12px] px-3 py-1.5 bg-background border border-border/60 rounded-lg focus:outline-none focus:border-primary/30 text-muted placeholder:text-foreground/20 transition-all"
+            />
+          </div>
+        </div>
+      )
+    }
 
     // For bilateral regions: each side is independent
     if (region.bilateral) {
@@ -738,6 +867,31 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
             )
           })}
         </div>
+        {region.hasSubOption && current.values.some(v => v === 'knock-kneed' || v === 'bow-legged') && (
+          <div className="mt-3 pl-3 flex items-center gap-2">
+            <span className="text-[12px] font-medium text-muted">Type:</span>
+            {['functional', 'structural'].map(type => (
+              <label key={type} className={`inline-flex items-center gap-1.5 text-[12px] cursor-pointer px-2.5 py-1.5 rounded-lg border transition-all ${
+                current.subOption === type ? 'bg-primary/[0.06] border-primary/20 text-foreground font-medium' : 'border-transparent text-muted hover:bg-black/[0.02]'
+              }`}>
+                <input
+                  type="radio"
+                  name={`${region.key}-subopt`}
+                  checked={current.subOption === type}
+                  onChange={() => setState(prev => ({
+                    ...prev,
+                    [viewKey]: {
+                      ...prev[viewKey],
+                      [region.key]: { ...prev[viewKey][region.key], subOption: type },
+                    },
+                  }))}
+                  className="w-3.5 h-3.5 accent-primary"
+                />
+                <span className="capitalize">{type}</span>
+              </label>
+            ))}
+          </div>
+        )}
         {/* Notes */}
         <div className="mt-3 pt-3 border-t border-border/50">
           <input
@@ -987,6 +1141,9 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
               const deviations = rv.values.filter(v => !isNeutralOption(v) && v !== 'level')
               for (const v of deviations) {
                 allFindings.push({ view: viewName, region: r.label, finding: v })
+              }
+              if (rv.subOption) {
+                allFindings.push({ view: viewName, region: r.label, finding: `Type: ${rv.subOption}` })
               }
             }
             if (rv.regionNotes) {
