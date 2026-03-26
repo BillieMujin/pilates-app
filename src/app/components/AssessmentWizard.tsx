@@ -23,10 +23,10 @@ const STORAGE_KEY = 'pilates_assessment_draft'
 /* ─── side view regions ─── */
 const SIDE_VIEW_REGIONS = [
   { key: 'head', label: 'Head', options: ['neutral', 'forward', 'retracted'], bilateral: false },
-  { key: 'cervical_spine', label: 'Cervical Spine', options: ['neutral', 'decreased curve (flat)', 'excessive extension (increased curve)'], bilateral: false },
-  { key: 'upper_thoracic', label: 'Upper Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'excessive flexion (increased curve)'], bilateral: false },
-  { key: 'lower_thoracic', label: 'Lower Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'excessive flexion (increased curve)'], bilateral: false },
-  { key: 'lumbar_spine', label: 'Lumbar Spine', options: ['neutral', 'decreased curve (flat)', 'excessive extension (increased curve)'], bilateral: false },
+  { key: 'cervical_spine', label: 'Cervical Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive extension)'], bilateral: false },
+  { key: 'upper_thoracic', label: 'Upper Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive flexion)'], bilateral: false },
+  { key: 'lower_thoracic', label: 'Lower Thoracic Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive flexion)'], bilateral: false },
+  { key: 'lumbar_spine', label: 'Lumbar Spine', options: ['neutral', 'decreased curve (flat)', 'increased curve (excessive extension)'], bilateral: false },
   { key: 'pelvis', label: 'Pelvis', options: ['neutral', 'anterior tilt', 'posterior tilt'], bilateral: false },
   { key: 'hip_joints', label: 'Hip Joints', options: ['neutral', 'flexed', 'extended'], bilateral: true },
   { key: 'knees', label: 'Knees', options: ['neutral', 'hyperextended', 'flexed'], bilateral: true },
@@ -35,7 +35,7 @@ const SIDE_VIEW_REGIONS = [
 
 /* ─── front view regions ─── */
 const FRONT_VIEW_REGIONS = [
-  { key: 'feet', label: 'Feet', options: ['neutral', 'inverted-supinated', 'everted-pronated'], bilateral: true },
+  { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
   { key: 'knees', label: 'Knees', options: ['neutral', 'knock-kneed (genu valgum)', 'bow-legged (genu varum)'], bilateral: false },
   { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated R', 'elevated L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
   { key: 'rib_cage', label: 'Rib Cage', options: ['neutral', 'elevated', 'shifted R', 'shifted L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
@@ -45,7 +45,7 @@ const FRONT_VIEW_REGIONS = [
 
 /* ─── back view regions ─── */
 const BACK_VIEW_REGIONS = [
-  { key: 'feet', label: 'Feet', options: ['neutral', 'inverted-supinated', 'everted-pronated'], bilateral: true },
+  { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
   { key: 'femurs', label: 'Femurs', options: ['neutral', 'medial rotation', 'lateral rotation'], bilateral: true },
   { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated R', 'elevated L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
   {
@@ -53,7 +53,6 @@ const BACK_VIEW_REGIONS = [
     label: 'Scapulae',
     options: ['neutral', 'protracted', 'retracted', 'elevated', 'depressed', 'upwardly rotated', 'downwardly rotated', 'winging', 'anteriorly tipped'],
     bilateral: true,
-    guidance: 'Neutral: medial border ~3-3.5 finger-widths (client\'s fingers) from spine',
   },
   { key: 'humeri', label: 'Humeri', options: ['neutral', 'medially rotated'], bilateral: true },
 ]
@@ -62,8 +61,7 @@ const BACK_VIEW_REGIONS = [
 
 interface RegionValue {
   values: string[]
-  right?: boolean
-  left?: boolean
+  laterality?: Record<string, { right?: boolean; left?: boolean }>
 }
 
 interface WizardState {
@@ -178,11 +176,11 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 5
-    if (has('upper_thoracic', 'excessive flexion (increased curve)') || has('lower_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Thoracic excessive flexion') }
-    if (has('lumbar_spine', 'excessive extension (increased curve)')) { score++; markers.push('Lumbar excessive extension') }
+    if (has('upper_thoracic', 'increased curve (excessive flexion)') || has('lower_thoracic', 'increased curve (excessive flexion)')) { score++; markers.push('Thoracic excessive flexion') }
+    if (has('lumbar_spine', 'increased curve (excessive extension)')) { score++; markers.push('Lumbar excessive extension') }
     if (has('pelvis', 'anterior tilt')) { score++; markers.push('Anterior pelvic tilt') }
     if (has('head', 'forward')) { score++; markers.push('Forward head') }
-    if (has('cervical_spine', 'excessive extension (increased curve)')) { score++; markers.push('Cervical excessive extension') }
+    if (has('cervical_spine', 'increased curve (excessive extension)')) { score++; markers.push('Cervical excessive extension') }
     scores['kyphosis'] = { score, total, markers }
   }
 
@@ -191,7 +189,7 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 4
-    if (has('upper_thoracic', 'excessive flexion (increased curve)') || has('lower_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Thoracic excessive flexion') }
+    if (has('upper_thoracic', 'increased curve (excessive flexion)') || has('lower_thoracic', 'increased curve (excessive flexion)')) { score++; markers.push('Thoracic excessive flexion') }
     if (isNeutral('lumbar_spine') || has('lumbar_spine', 'decreased curve (flat)')) { score++; markers.push('Lumbar neutral/flat') }
     if (isNeutral('pelvis') || has('pelvis', 'posterior tilt')) { score++; markers.push('Pelvis neutral/posterior') }
     if (has('head', 'forward')) { score++; markers.push('Forward head') }
@@ -203,7 +201,7 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 4
-    if (has('lumbar_spine', 'excessive extension (increased curve)')) { score++; markers.push('Lumbar excessive extension') }
+    if (has('lumbar_spine', 'increased curve (excessive extension)')) { score++; markers.push('Lumbar excessive extension') }
     if (has('pelvis', 'anterior tilt')) { score++; markers.push('Anterior pelvic tilt') }
     if (isNeutral('upper_thoracic') && isNeutral('lower_thoracic')) { score++; markers.push('Thoracic neutral') }
     if (isNeutral('head') || has('head', 'forward')) { score++; markers.push('Head neutral/slight forward') }
@@ -217,7 +215,7 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const total = 5
     if (has('lumbar_spine', 'decreased curve (flat)')) { score++; markers.push('Lumbar flat') }
     if (has('pelvis', 'posterior tilt')) { score++; markers.push('Posterior pelvic tilt') }
-    if (has('upper_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Upper thoracic flexion') }
+    if (has('upper_thoracic', 'increased curve (excessive flexion)')) { score++; markers.push('Upper thoracic flexion') }
     if (isNeutral('lower_thoracic') || has('lower_thoracic', 'decreased curve (flat)')) { score++; markers.push('Lower thoracic neutral/flat') }
     if (has('head', 'forward')) { score++; markers.push('Forward head') }
     scores['flatback'] = { score, total, markers }
@@ -228,7 +226,7 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const markers: string[] = []
     let score = 0
     const total = 5
-    if (has('lumbar_spine', 'excessive extension (increased curve)')) { score++; markers.push('Lumbar excessive extension') }
+    if (has('lumbar_spine', 'increased curve (excessive extension)')) { score++; markers.push('Lumbar excessive extension') }
     if (has('pelvis', 'anterior tilt')) { score++; markers.push('Anterior pelvic tilt') }
     if (isNeutral('upper_thoracic') || isNeutral('lower_thoracic')) { score++; markers.push('Thoracic neutral') }
     if (isNeutral('cervical_spine')) { score++; markers.push('Cervical neutral') }
@@ -243,7 +241,7 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
     const total = 6
     if (has('pelvis', 'posterior tilt')) { score++; markers.push('Posterior pelvic tilt') }
     if (has('lumbar_spine', 'decreased curve (flat)')) { score++; markers.push('Lumbar flat') }
-    if (has('upper_thoracic', 'excessive flexion (increased curve)') || has('lower_thoracic', 'excessive flexion (increased curve)')) { score++; markers.push('Thoracic excessive flexion (long kyphosis)') }
+    if (has('upper_thoracic', 'increased curve (excessive flexion)') || has('lower_thoracic', 'increased curve (excessive flexion)')) { score++; markers.push('Thoracic excessive flexion (long kyphosis)') }
     if (has('head', 'forward')) { score++; markers.push('Forward head') }
     if (has('hip_joints', 'extended')) { score++; markers.push('Hips extended') }
     if (has('knees', 'hyperextended')) { score++; markers.push('Knees hyperextended') }
@@ -288,9 +286,9 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
             if (rv.values) {
               migrated[key] = rv as RegionValue
             } else if (rv.value) {
-              migrated[key] = { values: [rv.value], right: rv.right, left: rv.left }
+              migrated[key] = { values: [rv.value] }
             } else {
-              migrated[key] = { values: [], right: rv.right, left: rv.left }
+              migrated[key] = { values: [] }
             }
           }
           return migrated
@@ -357,33 +355,26 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   ) => {
     setState(prev => {
       const view = prev[viewKey]
-      const current = view[regionKey] || { values: [] }
+      const current = view[regionKey] || { values: [], laterality: {} }
       let newValues: string[]
+      let newLaterality = { ...(current.laterality || {}) }
 
       if (isNeutralOption(option)) {
-        // Selecting neutral/level clears all other selections
         newValues = current.values.includes(option) ? [] : [option]
+        newLaterality = {}
       } else {
-        // Selecting a deviation: remove any neutral/level, then toggle this option
         const withoutNeutral = current.values.filter(v => !isNeutralOption(v))
         if (withoutNeutral.includes(option)) {
           newValues = withoutNeutral.filter(v => v !== option)
+          delete newLaterality[option]
         } else {
           newValues = [...withoutNeutral, option]
         }
       }
 
-      // Clear bilateral flags if going back to neutral/empty or all neutral
-      const hasDeviation = newValues.some(v => !isNeutralOption(v))
-      const updatedRegion: RegionValue = {
-        values: newValues,
-        right: hasDeviation ? current.right : undefined,
-        left: hasDeviation ? current.left : undefined,
-      }
-
       return {
         ...prev,
-        [viewKey]: { ...view, [regionKey]: updatedRegion },
+        [viewKey]: { ...view, [regionKey]: { values: newValues, laterality: newLaterality } },
       }
     })
   }, [])
@@ -391,16 +382,29 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   const updateLateral = useCallback((
     viewKey: 'sideView' | 'frontView' | 'backView',
     regionKey: string,
+    option: string,
     side: 'right' | 'left',
     checked: boolean,
   ) => {
-    setState(prev => ({
-      ...prev,
-      [viewKey]: {
-        ...prev[viewKey],
-        [regionKey]: { ...prev[viewKey][regionKey], [side]: checked },
-      },
-    }))
+    setState(prev => {
+      const view = prev[viewKey]
+      const current = view[regionKey] || { values: [] }
+      const laterality = current.laterality || {}
+      const optLat = laterality[option] || {}
+      return {
+        ...prev,
+        [viewKey]: {
+          ...view,
+          [regionKey]: {
+            ...current,
+            laterality: {
+              ...laterality,
+              [option]: { ...optLat, [side]: checked },
+            },
+          },
+        },
+      }
+    })
   }, [])
 
   const handleSave = async () => {
@@ -450,9 +454,9 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         if (rv.values) {
           migrated[key] = rv as RegionValue
         } else if (rv.value) {
-          migrated[key] = { values: [rv.value], right: rv.right, left: rv.left }
+          migrated[key] = { values: [rv.value] }
         } else {
-          migrated[key] = { values: [], right: rv.right, left: rv.left }
+          migrated[key] = { values: [] }
         }
       }
       return migrated
@@ -524,49 +528,50 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         <div className="space-y-2">
           {region.options.map(opt => {
             const isSelected = current.values.includes(opt)
+            const isNeutralOpt = isNeutralOption(opt)
             return (
-              <label
-                key={opt}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
-                  isSelected
-                    ? 'bg-primary/[0.06] text-foreground border border-primary/20'
-                    : 'hover:bg-black/[0.02] border border-transparent'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleValue(viewKey, region.key, opt)}
-                  className="w-4 h-4 accent-primary rounded"
-                />
-                <span className="capitalize">{opt}</span>
-              </label>
+              <div key={opt}>
+                <label
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
+                    isSelected
+                      ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                      : 'hover:bg-black/[0.02] border border-transparent'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleValue(viewKey, region.key, opt)}
+                    className="w-4 h-4 accent-primary rounded"
+                  />
+                  <span className="capitalize">{opt}</span>
+                </label>
+                {region.bilateral && isSelected && !isNeutralOpt && (
+                  <div className="ml-10 mt-1 mb-1 flex items-center gap-3">
+                    <label className="flex items-center gap-1.5 text-[12px] text-muted">
+                      <input
+                        type="checkbox"
+                        checked={current.laterality?.[opt]?.right || false}
+                        onChange={e => updateLateral(viewKey, region.key, opt, 'right', e.target.checked)}
+                        className="w-3.5 h-3.5 accent-primary"
+                      />
+                      Right
+                    </label>
+                    <label className="flex items-center gap-1.5 text-[12px] text-muted">
+                      <input
+                        type="checkbox"
+                        checked={current.laterality?.[opt]?.left || false}
+                        onChange={e => updateLateral(viewKey, region.key, opt, 'left', e.target.checked)}
+                        className="w-3.5 h-3.5 accent-primary"
+                      />
+                      Left
+                    </label>
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
-        {region.bilateral && hasDeviation && (
-          <div className="mt-3 flex items-center gap-4 pl-3">
-            <span className="text-[12px] text-muted font-medium">Affected side:</span>
-            <label className="flex items-center gap-1.5 text-[13px]">
-              <input
-                type="checkbox"
-                checked={current.right || false}
-                onChange={e => updateLateral(viewKey, region.key, 'right', e.target.checked)}
-                className="w-3.5 h-3.5 accent-primary"
-              />
-              Right
-            </label>
-            <label className="flex items-center gap-1.5 text-[13px]">
-              <input
-                type="checkbox"
-                checked={current.left || false}
-                onChange={e => updateLateral(viewKey, region.key, 'left', e.target.checked)}
-                className="w-3.5 h-3.5 accent-primary"
-              />
-              Left
-            </label>
-          </div>
-        )}
       </div>
     )
   }
@@ -820,21 +825,29 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
                     </div>
                   </div>
 
-                  {/* All scores */}
+                  {/* Other scores - only show 100% matches prominently */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {Object.entries(detection.scores)
                       .sort(([, a], [, b]) => (b.score / b.total) - (a.score / a.total))
-                      .map(([key, data]) => (
-                        <div
-                          key={key}
-                          className={`rounded-xl px-3 py-2 border text-[12px] ${
-                            key === detection.posture ? 'border-primary/30 bg-primary/[0.04]' : 'border-border'
-                          }`}
-                        >
-                          <div className="font-medium text-foreground">{POSTURE_META[key]?.label}</div>
-                          <div className="text-muted">{data.score}/{data.total} ({Math.round(data.score / data.total * 100)}%)</div>
-                        </div>
-                      ))}
+                      .map(([key, data]) => {
+                        const pct = Math.round(data.score / data.total * 100)
+                        const isMain = key === detection.posture
+                        const isFull = pct === 100
+                        if (isMain) return null // already shown above
+                        return (
+                          <div
+                            key={key}
+                            className={`rounded-xl px-3 py-2 border text-[12px] transition-all ${
+                              isFull
+                                ? 'border-primary/30 bg-primary/[0.04]'
+                                : 'border-border/40 opacity-[0.15]'
+                            }`}
+                          >
+                            <div className="font-medium text-foreground">{POSTURE_META[key]?.label}</div>
+                            <div className="text-muted">{data.score}/{data.total} ({pct}%)</div>
+                          </div>
+                        )
+                      })}
                   </div>
                 </div>
               ) : (
@@ -940,6 +953,15 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
               {saveSuccess && (
                 <span className="text-[13px] text-green-600 font-medium">Saved successfully</span>
               )}
+              <button
+                onClick={() => window.print()}
+                className="text-[13px] font-medium text-foreground/60 hover:text-foreground border border-border hover:border-foreground/20 px-4 py-2.5 rounded-xl transition-all flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+                Export PDF
+              </button>
               <button
                 onClick={startNew}
                 className="text-[13px] font-medium text-muted hover:text-foreground transition-colors ml-auto"

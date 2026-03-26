@@ -50,12 +50,6 @@ export default function Navbar({ user }: NavbarProps) {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <Link
-                href="/assessment"
-                className="text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
-              >
-                Assessment
-              </Link>
               <span className="text-[13px] text-foreground/30 hidden sm:block">
                 {user.email}
               </span>

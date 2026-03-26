@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
@@ -82,22 +84,29 @@ const MUSCLE_KEYWORDS: Record<string, string[]> = {
   'Pectoralis minor': ['pec minor'],
 }
 
-/* ─── Dropdown component (fixed positioning from button rect) ─── */
+/* ─── Dropdown component (fixed positioning via portal) ─── */
 function Dropdown({ label, children, badge, align = 'left' }: { label: string; children: React.ReactNode; badge?: number; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({})
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
+    if (!open) return
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      if (containerRef.current?.contains(target)) return
+      if (panelRef.current?.contains(target)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  }, [open])
 
-  // Calculate fixed position from button rect on every open
   const handleToggle = useCallback(() => {
     if (!open && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
@@ -109,13 +118,32 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
       } else {
         left = Math.max(12, Math.min(rect.left, vw - panelW - 12))
       }
-      setPanelStyle({ position: 'fixed', top: rect.bottom + 6, left, width: panelW })
+      setPanelStyle({ position: 'fixed' as const, top: rect.bottom + 6, left, width: panelW, zIndex: 9999 })
     }
     setOpen((o) => !o)
   }, [open, align])
 
+  // Close on scroll
+  useEffect(() => {
+    if (!open) return
+    const handleScroll = () => setOpen(false)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [open])
+
+  const panel = open && mounted ? createPortal(
+    <div
+      ref={panelRef}
+      className="bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] max-h-[360px] overflow-y-auto py-1.5"
+      style={panelStyle}
+    >
+      {children}
+    </div>,
+    document.body
+  ) : null
+
   return (
-    <div ref={ref}>
+    <div ref={containerRef}>
       <button
         ref={btnRef}
         onClick={handleToggle}
@@ -133,14 +161,7 @@ function Dropdown({ label, children, badge, align = 'left' }: { label: string; c
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
       </button>
-      {open && (
-        <div
-          className="bg-white rounded-xl border border-black/[0.06] shadow-xl shadow-black/[0.08] z-50 max-h-[360px] overflow-y-auto py-1.5"
-          style={panelStyle}
-        >
-          {children}
-        </div>
-      )}
+      {panel}
     </div>
   )
 }
@@ -405,6 +426,16 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
 
       {/* ── Filter bar (sticky) ── */}
       <div className="sticky top-16 z-40 bg-background/90 backdrop-blur-xl -mx-5 sm:-mx-8 px-5 sm:px-8 pt-5 pb-4 mb-8">
+
+        {/* Postural Assessment link (logged-in only) */}
+        {user && (
+          <Link href="/assessment" className="flex items-center gap-2 mb-4 text-[13px] font-medium text-primary/70 hover:text-primary transition-colors px-3 py-2 rounded-xl border border-primary/10 hover:border-primary/20 hover:bg-primary/[0.03] w-fit">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+            </svg>
+            Postural Assessment
+          </Link>
+        )}
 
         {/* Search with autocomplete */}
         <div ref={searchRef} className="relative mb-5">
