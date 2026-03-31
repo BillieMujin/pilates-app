@@ -37,17 +37,17 @@ const SIDE_VIEW_REGIONS = [
 const FRONT_VIEW_REGIONS = [
   { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
   { key: 'knees', label: 'Knees', options: ['neutral', 'knock-kneed', 'bow-legged'], bilateral: false, hasSubOption: true },
-  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated R', 'elevated L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
+  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, lateralSubOptions: ['elevated'] },
   { key: 'rib_cage', label: 'Rib Cage', options: ['neutral', 'elevated', 'shifted R', 'shifted L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
   { key: 'shoulders', label: 'Shoulders', options: ['neutral', 'elevated', 'depressed'], bilateral: true },
-  { key: 'head', label: 'Head', options: ['neutral', 'tilted R', 'tilted L', 'shifted R', 'shifted L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
+  { key: 'head', label: 'Head', options: ['neutral', 'tilted', 'shifted', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, lateralSubOptions: ['tilted', 'shifted'] },
 ]
 
 /* ─── back view regions ─── */
 const BACK_VIEW_REGIONS = [
   { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
   { key: 'femurs', label: 'Femurs', options: ['neutral', 'medial rotation', 'lateral rotation'], bilateral: true },
-  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated R', 'elevated L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
+  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, lateralSubOptions: ['elevated'] },
   {
     key: 'scapulae',
     label: 'Scapulae',
@@ -135,7 +135,7 @@ function isNeutralOption(opt: string): boolean {
 /** Options within the same group that are mutually exclusive with each other */
 const EXCLUSIVE_GROUPS: Record<string, string[][]> = {
   pelvis: [
-    ['level', 'elevated R', 'elevated L'],
+    ['level', 'elevated'],
     ['rotated clockwise', 'rotated counter-clockwise'],
   ],
   rib_cage: [
@@ -143,11 +143,15 @@ const EXCLUSIVE_GROUPS: Record<string, string[][]> = {
     ['rotated clockwise', 'rotated counter-clockwise'],
   ],
   head: [
-    ['tilted R', 'tilted L'],
-    ['shifted R', 'shifted L'],
     ['rotated clockwise', 'rotated counter-clockwise'],
   ],
 }
+
+/** Regions where all options are mutually exclusive (radio / single-select) */
+const SINGLE_SELECT_REGIONS = new Set([
+  // Side view - all spinal/pelvic regions
+  'head', 'cervical_spine', 'upper_thoracic', 'lower_thoracic', 'lumbar_spine', 'pelvis',
+])
 
 /** Check whether a region has any non-neutral selected value that matches a target */
 function regionHasValue(rv: RegionValue | undefined, target: string): boolean {
@@ -156,7 +160,7 @@ function regionHasValue(rv: RegionValue | undefined, target: string): boolean {
 }
 
 /** Get the list of regions for a given step */
-function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean }[] {
+function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[] }[] {
   switch (step) {
     case 1: return SIDE_VIEW_REGIONS
     case 2: return FRONT_VIEW_REGIONS
@@ -400,7 +404,16 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       let newValues: string[]
       let newLaterality = { ...(current.laterality || {}) }
 
-      if (isNeutralOption(option)) {
+      // Single-select regions: only one option at a time
+      if (SINGLE_SELECT_REGIONS.has(regionKey)) {
+        if (current.values.includes(option)) {
+          newValues = []
+          newLaterality = {}
+        } else {
+          newValues = [option]
+          newLaterality = {}
+        }
+      } else if (isNeutralOption(option)) {
         // "neutral" clears everything
         newValues = current.values.includes(option) ? [] : [option]
         newLaterality = {}
@@ -644,7 +657,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   /* ─── render helpers ─── */
 
   function renderRegionCard(
-    region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean },
+    region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[] },
     viewData: Record<string, RegionValue>,
     viewKey: 'sideView' | 'frontView' | 'backView',
   ) {
@@ -848,22 +861,58 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
           {region.options.map(opt => {
             const isSelected = current.values.includes(opt)
             return (
-              <label
-                key={opt}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
-                  isSelected
-                    ? 'bg-primary/[0.06] text-foreground border border-primary/20'
-                    : 'hover:bg-black/[0.02] border border-transparent'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleValue(viewKey, region.key, opt)}
-                  className="w-4 h-4 accent-primary rounded"
-                />
-                <span className="capitalize">{opt}</span>
-              </label>
+              <div key={opt}>
+                <label
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
+                    isSelected
+                      ? 'bg-primary/[0.06] text-foreground border border-primary/20'
+                      : 'hover:bg-black/[0.02] border border-transparent'
+                  }`}
+                >
+                  <input
+                    type={SINGLE_SELECT_REGIONS.has(region.key) ? "radio" : "checkbox"}
+                    checked={isSelected}
+                    onChange={() => toggleValue(viewKey, region.key, opt)}
+                    name={SINGLE_SELECT_REGIONS.has(region.key) ? `${viewKey}-${region.key}` : undefined}
+                    className="w-4 h-4 accent-primary rounded"
+                  />
+                  <span className="capitalize">{opt}</span>
+                </label>
+                {region.lateralSubOptions?.includes(opt) && isSelected && (
+                  <div className="ml-10 mt-1 mb-1 flex items-center gap-3">
+                    {(['right', 'left'] as const).map(side => (
+                      <label key={side} className="flex items-center gap-1.5 text-[12px] text-muted">
+                        <input
+                          type="radio"
+                          name={`${region.key}-${opt}-side`}
+                          checked={current.laterality?.[opt]?.[side] === true}
+                          onChange={() => {
+                            setState(prev => {
+                              const view = prev[viewKey]
+                              const cur = view[region.key] || { values: [] }
+                              return {
+                                ...prev,
+                                [viewKey]: {
+                                  ...view,
+                                  [region.key]: {
+                                    ...cur,
+                                    laterality: {
+                                      ...(cur.laterality || {}),
+                                      [opt]: { right: side === 'right', left: side === 'left' },
+                                    },
+                                  },
+                                },
+                              }
+                            })
+                          }}
+                          className="w-3.5 h-3.5 accent-primary"
+                        />
+                        <span className="capitalize">{side}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
