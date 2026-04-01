@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Exercise, PosturalAssessment } from '@/lib/types'
@@ -37,17 +38,17 @@ const SIDE_VIEW_REGIONS = [
 const FRONT_VIEW_REGIONS = [
   { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
   { key: 'knees', label: 'Knees', options: ['neutral', 'knock-kneed', 'bow-legged'], bilateral: false, hasSubOption: true },
-  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, lateralSubOptions: ['elevated'] },
-  { key: 'rib_cage', label: 'Rib Cage', options: ['neutral', 'elevated', 'shifted R', 'shifted L', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false },
+  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, hasNonBilateralClusters: true },
+  { key: 'rib_cage', label: 'Rib Cage', options: ['neutral', 'elevated', 'shifted', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, hasNonBilateralClusters: true },
   { key: 'shoulders', label: 'Shoulders', options: ['neutral', 'elevated', 'depressed'], bilateral: true },
-  { key: 'head', label: 'Head', options: ['neutral', 'tilted', 'shifted', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, lateralSubOptions: ['tilted', 'shifted'] },
+  { key: 'head', label: 'Head', options: ['neutral', 'tilted', 'shifted', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, hasNonBilateralClusters: true },
 ]
 
 /* ─── back view regions ─── */
 const BACK_VIEW_REGIONS = [
   { key: 'feet', label: 'Feet', options: ['neutral', 'supinated', 'pronated'], bilateral: true },
   { key: 'femurs', label: 'Femurs', options: ['neutral', 'medial rotation', 'lateral rotation'], bilateral: true },
-  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, lateralSubOptions: ['elevated'] },
+  { key: 'pelvis', label: 'Pelvis', options: ['level', 'elevated', 'rotated clockwise', 'rotated counter-clockwise'], bilateral: false, hasNonBilateralClusters: true },
   {
     key: 'scapulae',
     label: 'Scapulae',
@@ -65,6 +66,24 @@ const SCAPULAE_CLUSTERS = [
   { label: 'Rotation', options: ['upwardly rotated', 'downwardly rotated'] },
   { label: 'Other', options: ['winging', 'anterior tilt'] },
 ]
+
+/* ─── non-bilateral clusters ─── */
+const NON_BILATERAL_CLUSTERS: Record<string, { label: string; options: string[]; lateralOptions?: string[] }[]> = {
+  pelvis: [
+    { label: 'Level / Elevation', options: ['level', 'elevated'], lateralOptions: ['elevated'] },
+    { label: 'Rotation', options: ['rotated clockwise', 'rotated counter-clockwise'] },
+  ],
+  rib_cage: [
+    { label: 'Position', options: ['neutral', 'elevated'], lateralOptions: ['elevated'] },
+    { label: 'Shift', options: ['shifted'], lateralOptions: ['shifted'] },
+    { label: 'Rotation', options: ['rotated clockwise', 'rotated counter-clockwise'] },
+  ],
+  head: [
+    { label: 'Tilt', options: ['neutral', 'tilted'], lateralOptions: ['tilted'] },
+    { label: 'Shift', options: ['shifted'], lateralOptions: ['shifted'] },
+    { label: 'Rotation', options: ['rotated clockwise', 'rotated counter-clockwise'] },
+  ],
+}
 
 /* ─── types ─── */
 
@@ -134,23 +153,12 @@ function isNeutralOption(opt: string): boolean {
 
 /** Options within the same group that are mutually exclusive with each other */
 const EXCLUSIVE_GROUPS: Record<string, string[][]> = {
-  pelvis: [
-    ['level', 'elevated'],
-    ['rotated clockwise', 'rotated counter-clockwise'],
-  ],
-  rib_cage: [
-    ['shifted R', 'shifted L'],
-    ['rotated clockwise', 'rotated counter-clockwise'],
-  ],
-  head: [
-    ['rotated clockwise', 'rotated counter-clockwise'],
-  ],
 }
 
-/** Regions where all options are mutually exclusive (radio / single-select) */
+/** Regions where all options are mutually exclusive (radio / single-select) — view-specific */
 const SINGLE_SELECT_REGIONS = new Set([
-  // Side view - all spinal/pelvic regions
-  'head', 'cervical_spine', 'upper_thoracic', 'lower_thoracic', 'lumbar_spine', 'pelvis',
+  'sideView:head', 'sideView:cervical_spine', 'sideView:upper_thoracic',
+  'sideView:lower_thoracic', 'sideView:lumbar_spine', 'sideView:pelvis',
 ])
 
 /** Check whether a region has any non-neutral selected value that matches a target */
@@ -160,7 +168,7 @@ function regionHasValue(rv: RegionValue | undefined, target: string): boolean {
 }
 
 /** Get the list of regions for a given step */
-function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[] }[] {
+function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[]; hasNonBilateralClusters?: boolean }[] {
   switch (step) {
     case 1: return SIDE_VIEW_REGIONS
     case 2: return FRONT_VIEW_REGIONS
@@ -311,7 +319,9 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -405,7 +415,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       let newLaterality = { ...(current.laterality || {}) }
 
       // Single-select regions: only one option at a time
-      if (SINGLE_SELECT_REGIONS.has(regionKey)) {
+      if (SINGLE_SELECT_REGIONS.has(`${viewKey}:${regionKey}`)) {
         if (current.values.includes(option)) {
           newValues = []
           newLaterality = {}
@@ -569,6 +579,41 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     })
   }, [])
 
+  /** Toggle a value within a non-bilateral cluster (radio-style within each cluster) */
+  const toggleClusterValueNonBilateral = useCallback((
+    viewKey: 'sideView' | 'frontView' | 'backView',
+    regionKey: string,
+    option: string,
+    clusterOptions: string[],
+  ) => {
+    setState(prev => {
+      const view = prev[viewKey]
+      const current = view[regionKey] || { values: [], laterality: {} }
+
+      // Remove all options from this cluster, then add the selected one (or toggle off)
+      let newValues = current.values.filter(v => !clusterOptions.includes(v))
+      const newLaterality = { ...(current.laterality || {}) }
+
+      if (!current.values.includes(option)) {
+        // Selecting - add it
+        newValues.push(option)
+      } else {
+        // Deselecting - clean up laterality
+        delete newLaterality[option]
+      }
+
+      // Clean up laterality for removed cluster options
+      clusterOptions.forEach(o => {
+        if (!newValues.includes(o)) delete newLaterality[o]
+      })
+
+      return {
+        ...prev,
+        [viewKey]: { ...view, [regionKey]: { ...current, values: newValues, laterality: newLaterality } },
+      }
+    })
+  }, [])
+
   const handleSave = async () => {
     setSaving(true)
     setSaveSuccess(false)
@@ -657,11 +702,123 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   /* ─── render helpers ─── */
 
   function renderRegionCard(
-    region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[] },
+    region: { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[]; hasNonBilateralClusters?: boolean },
     viewData: Record<string, RegionValue>,
     viewKey: 'sideView' | 'frontView' | 'backView',
   ) {
     const current = viewData[region.key] || { values: [] }
+
+    // For non-bilateral regions with clusters (head, pelvis, rib_cage in front/back view)
+    if (region.hasNonBilateralClusters) {
+      const clusters = NON_BILATERAL_CLUSTERS[region.key] || []
+      const isUnanswered = current.values.length === 0
+
+      return (
+        <div key={region.key} className={`bg-white rounded-2xl border p-5 sm:p-6 transition-all ${
+          isUnanswered ? 'border-l-[3px] border-l-amber-400 border-t-border border-r-border border-b-border bg-amber-50/30' : 'border-border'
+        }`}>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-heading text-[15px] font-semibold text-foreground">{region.label}</h4>
+            {isUnanswered && <span className="text-[11px] font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-lg">Required</span>}
+          </div>
+          <div className="space-y-4">
+            {clusters.map(cluster => (
+              <div key={cluster.label}>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground/30 mb-1.5 px-1">{cluster.label}</div>
+                <div className="space-y-1.5">
+                  {cluster.options.map(opt => {
+                    const isSelected = current.values.includes(opt)
+                    return (
+                      <div key={opt}>
+                        <label className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
+                          isSelected ? 'bg-primary/[0.06] text-foreground border border-primary/20' : 'hover:bg-black/[0.02] border border-transparent'
+                        }`}>
+                          <input
+                            type="radio"
+                            name={`${viewKey}-${region.key}-${cluster.label}`}
+                            checked={isSelected}
+                            onChange={() => toggleClusterValueNonBilateral(viewKey, region.key, opt, cluster.options)}
+                            className="w-4 h-4 accent-primary"
+                          />
+                          <span className="capitalize">{opt}</span>
+                        </label>
+                        {/* R/L sub-choice for lateral options */}
+                        {cluster.lateralOptions?.includes(opt) && isSelected && (
+                          <div className="ml-10 mt-1 mb-1 flex items-center gap-3">
+                            {(['right', 'left'] as const).map(side => (
+                              <label key={side} className="flex items-center gap-1.5 text-[12px] text-muted">
+                                <input
+                                  type="radio"
+                                  name={`${region.key}-${opt}-side`}
+                                  checked={current.laterality?.[opt]?.[side] === true}
+                                  onChange={() => {
+                                    setState(prev => {
+                                      const view = prev[viewKey]
+                                      const cur = view[region.key] || { values: [] }
+                                      return {
+                                        ...prev,
+                                        [viewKey]: {
+                                          ...view,
+                                          [region.key]: {
+                                            ...cur,
+                                            laterality: {
+                                              ...(cur.laterality || {}),
+                                              [opt]: { right: side === 'right', left: side === 'left' },
+                                            },
+                                          },
+                                        },
+                                      }
+                                    })
+                                  }}
+                                  className="w-3.5 h-3.5 accent-primary"
+                                />
+                                <span className="capitalize">{side}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                  {/* "None" option to deselect for clusters without neutral/level */}
+                  {!cluster.options.includes('neutral') && !cluster.options.includes('level') && (
+                    <label className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-[13px] ${
+                      !cluster.options.some(o => current.values.includes(o)) ? 'bg-black/[0.02] text-foreground/40 border border-transparent' : 'hover:bg-black/[0.02] border border-transparent text-foreground/40'
+                    }`}>
+                      <input
+                        type="radio"
+                        name={`${viewKey}-${region.key}-${cluster.label}`}
+                        checked={!cluster.options.some(o => current.values.includes(o))}
+                        onChange={() => {
+                          // Deselect all options in this cluster
+                          setState(prev => {
+                            const view = prev[viewKey]
+                            const cur = view[region.key] || { values: [] }
+                            const newValues = cur.values.filter(v => !cluster.options.includes(v))
+                            const newLaterality = { ...(cur.laterality || {}) }
+                            cluster.options.forEach(o => delete newLaterality[o])
+                            return {
+                              ...prev,
+                              [viewKey]: { ...view, [region.key]: { ...cur, values: newValues, laterality: newLaterality } },
+                            }
+                          })
+                        }}
+                        className="w-4 h-4 accent-primary"
+                      />
+                      <span className="text-foreground/40 italic">None</span>
+                    </label>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Notes */}
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <input type="text" value={current.regionNotes || ''} onChange={e => updateRegionNotes(viewKey, region.key, e.target.value)} placeholder="Notes..." className="w-full text-[12px] px-3 py-1.5 bg-background border border-border/60 rounded-lg focus:outline-none focus:border-primary/30 text-muted placeholder:text-foreground/20 transition-all" />
+          </div>
+        </div>
+      )
+    }
 
     // For bilateral regions with clusters (scapulae)
     if (region.bilateral && region.hasClusters) {
@@ -870,10 +1027,10 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
                   }`}
                 >
                   <input
-                    type={SINGLE_SELECT_REGIONS.has(region.key) ? "radio" : "checkbox"}
+                    type={SINGLE_SELECT_REGIONS.has(`${viewKey}:${region.key}`) ? "radio" : "checkbox"}
                     checked={isSelected}
                     onChange={() => toggleValue(viewKey, region.key, opt)}
-                    name={SINGLE_SELECT_REGIONS.has(region.key) ? `${viewKey}-${region.key}` : undefined}
+                    name={SINGLE_SELECT_REGIONS.has(`${viewKey}:${region.key}`) ? `${viewKey}-${region.key}` : undefined}
                     className="w-4 h-4 accent-primary rounded"
                   />
                   <span className="capitalize">{opt}</span>
@@ -1433,8 +1590,72 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     }
   }
 
+  const handleHomeClick = () => {
+    if (step > 0) {
+      setShowLeaveDialog(true)
+    } else {
+      router.push('/')
+    }
+  }
+
+  const handleSaveDraft = () => {
+    // Draft is already auto-saved to localStorage
+    setShowLeaveDialog(false)
+    router.push('/')
+  }
+
+  const handleDiscard = () => {
+    localStorage.removeItem(STORAGE_KEY)
+    setShowLeaveDialog(false)
+    router.push('/')
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      {/* Leave dialog */}
+      {showLeaveDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowLeaveDialog(false)} />
+          <div className="relative bg-white rounded-2xl border border-border shadow-xl p-6 sm:p-8 max-w-sm w-full mx-4">
+            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">Leave Assessment?</h3>
+            <p className="text-[13px] text-muted mb-6">You have an assessment in progress. What would you like to do?</p>
+            <div className="space-y-2.5">
+              <button
+                onClick={handleSaveDraft}
+                className="w-full text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-4 py-2.5 rounded-xl shadow-sm shadow-primary/20"
+              >
+                Save Draft &amp; Go Home
+              </button>
+              <button
+                onClick={handleDiscard}
+                className="w-full text-[13px] font-medium text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 hover:bg-red-50 transition-all px-4 py-2.5 rounded-xl"
+              >
+                Discard &amp; Go Home
+              </button>
+              <button
+                onClick={() => setShowLeaveDialog(false)}
+                className="w-full text-[13px] font-medium text-foreground/50 hover:text-foreground/70 transition-colors px-4 py-2.5 rounded-xl hover:bg-black/[0.03]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Home button */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={handleHomeClick}
+          className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          Home
+        </button>
+      </div>
+
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
