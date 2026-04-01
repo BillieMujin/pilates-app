@@ -29,6 +29,13 @@ export interface PostureBenefits {
   swayback?: 'corrective' | 'awareness'
 }
 
+export interface StructuredCues {
+  setup: string[]
+  movement: string[]
+  key_cues: string[]
+  watch_for: string[]
+}
+
 export interface Exercise {
   id: string
   name: string
@@ -46,6 +53,7 @@ export interface Exercise {
   principles: string[] | null
   sort_order: number
   variations: ExerciseVariation[] | null
+  cues: StructuredCues | null
 }
 
 export interface Favorite {

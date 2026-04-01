@@ -929,14 +929,67 @@ function ExerciseCard({
           <div className="px-5 pb-5 space-y-5 ml-1">
             <div className="h-px bg-black/[0.04]" />
 
-            {exercise.start_position && (
-              <Section title="Starting Position">
-                <div className="text-[13px] text-foreground/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.start_position }} />
-              </Section>
-            )}
-
-            {(exercise.inhale || exercise.exhale) && (
-              <BreathingSection inhale={exercise.inhale} exhale={exercise.exhale} breathNote={exercise.breath_note} />
+            {/* Structured cues (new format) or fallback to old format */}
+            {exercise.cues ? (
+              <>
+                <Section title="Setup">
+                  <ul className="space-y-1">
+                    {exercise.cues.setup.map((s, i) => (
+                      <li key={i} className="text-[13px] text-foreground/70 leading-relaxed flex gap-2">
+                        <span className="text-primary/40 font-bold shrink-0 mt-px">•</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+                <Section title="Movement">
+                  <ol className="space-y-1.5">
+                    {exercise.cues.movement.map((m, i) => {
+                      const isInhale = m.toLowerCase().startsWith('inhale')
+                      const isExhale = m.toLowerCase().startsWith('exhale')
+                      return (
+                        <li key={i} className="text-[13px] leading-relaxed flex gap-2.5">
+                          <span className={`shrink-0 text-[11px] font-bold uppercase tracking-wider mt-0.5 w-5 text-center ${isInhale ? 'text-blue-400' : isExhale ? 'text-amber-500' : 'text-foreground/25'}`}>
+                            {isInhale ? 'IN' : isExhale ? 'EX' : (i + 1)}
+                          </span>
+                          <span className="text-foreground/70">{m.replace(/^(Inhale|Exhale):?\s*/i, '')}</span>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </Section>
+                <Section title="Key Cues">
+                  <ul className="space-y-1">
+                    {exercise.cues.key_cues.map((c, i) => (
+                      <li key={i} className="text-[13px] text-foreground/70 leading-relaxed flex gap-2">
+                        <span className="text-secondary/50 shrink-0 mt-px">💬</span>
+                        <span className="italic">&ldquo;{c}&rdquo;</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+                <Section title="Watch For">
+                  <ul className="space-y-1">
+                    {exercise.cues.watch_for.map((w, i) => (
+                      <li key={i} className="text-[13px] text-foreground/70 leading-relaxed flex gap-2">
+                        <span className="text-red-400/50 shrink-0 mt-px">⚠</span>
+                        <span>{w}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+              </>
+            ) : (
+              <>
+                {exercise.start_position && (
+                  <Section title="Starting Position">
+                    <div className="text-[13px] text-foreground/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.start_position }} />
+                  </Section>
+                )}
+                {(exercise.inhale || exercise.exhale) && (
+                  <BreathingSection inhale={exercise.inhale} exhale={exercise.exhale} breathNote={exercise.breath_note} />
+                )}
+              </>
             )}
 
             {(exercise.primary_muscles?.length > 0 || exercise.secondary_muscles?.length > 0) && (
