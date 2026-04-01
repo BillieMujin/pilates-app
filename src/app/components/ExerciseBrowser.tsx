@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
+import ExerciseSVG from './ExerciseSVG'
 
 /* ─── colour maps ─── */
 const LAYER_COLORS: Record<string, string> = {
@@ -888,6 +889,7 @@ function ExerciseCard({
         </button>
 
         <button onClick={onToggle} className="flex-1 text-left py-3.5 pr-2 flex items-center gap-3 min-w-0">
+          <ExerciseSVG name={exercise.name} className="shrink-0 w-12 h-8 text-foreground/40" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h3 className="font-heading text-[16px] font-semibold text-foreground truncate leading-tight">{exercise.name}</h3>
