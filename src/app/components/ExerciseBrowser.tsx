@@ -901,16 +901,7 @@ function ExerciseCard({
               )}
               {exercise.reps && <span className="shrink-0 text-[11px] font-medium text-foreground/30 bg-white/80 px-2 py-0.5 rounded-md">{exercise.reps}</span>}
             </div>
-            {/* Posture numerals on card */}
-            {postures && (
-              <div className="flex gap-1.5 mt-1">
-                {POSTURE_KEYS.map((key) =>
-                  postures[key] ? (
-                    <span key={key} className="font-heading font-bold text-[10px] leading-none opacity-40" style={{ color: POSTURE_SYMBOL_COLOR }} title={POSTURE_META[key].label}>{POSTURE_META[key].numeral}</span>
-                  ) : null
-                )}
-              </div>
-            )}
+            {/* Posture numerals only shown when posture filter is active */}
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
