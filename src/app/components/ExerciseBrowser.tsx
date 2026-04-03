@@ -893,6 +893,14 @@ function ExerciseCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h3 className="font-heading text-[16px] font-semibold text-foreground truncate leading-tight">{exercise.name}</h3>
+              {exercise.name.startsWith('Breathing') && (
+                <svg className="shrink-0 w-4 h-4 text-foreground/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v7" />
+                  <path d="M8.5 9C5.5 9 3 11.5 3 14.5S5.5 20 8.5 20h1" />
+                  <path d="M15.5 9c3 0 5.5 2.5 5.5 5.5S18.5 20 15.5 20h-1" />
+                  <path d="M12 9v11" />
+                </svg>
+              )}
               {benefitLevel === 'corrective' && (
                 <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#7a9a80]/15 text-[#7a9a80] border border-[#7a9a80]/20">Corrective</span>
               )}
@@ -900,6 +908,9 @@ function ExerciseCard({
                 <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-black/[0.03] text-foreground/30">Awareness</span>
               )}
               {exercise.reps && <span className="shrink-0 text-[11px] font-medium text-foreground/30 bg-white/80 px-2 py-0.5 rounded-md">{exercise.reps}</span>}
+              {exercise.min_level > 1 && (
+                <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600/70 border border-amber-500/15">L{exercise.min_level}+</span>
+              )}
             </div>
             {/* Posture numerals only shown when posture filter is active */}
           </div>
@@ -949,8 +960,8 @@ function ExerciseCard({
                       const isExhale = m.toLowerCase().startsWith('exhale')
                       return (
                         <li key={i} className="text-[13px] leading-relaxed flex gap-2.5">
-                          <span className={`shrink-0 text-[11px] font-bold uppercase tracking-wider mt-0.5 w-5 text-center ${isInhale ? 'text-blue-400' : isExhale ? 'text-amber-500' : 'text-foreground/25'}`}>
-                            {isInhale ? 'IN' : isExhale ? 'EX' : (i + 1)}
+                          <span className={`shrink-0 text-[11px] font-bold uppercase tracking-wider mt-0.5 w-6 text-center ${isInhale ? 'text-blue-400' : isExhale ? 'text-amber-500' : 'text-foreground/25'}`}>
+                            {isInhale ? 'IN' : isExhale ? 'OUT' : (i + 1)}
                           </span>
                           <span className="text-foreground/70">{m.replace(/^(Inhale|Exhale):?\s*/i, '')}</span>
                         </li>

@@ -52,6 +52,7 @@ export interface Exercise {
   posture_benefits: PostureBenefits | null
   principles: string[] | null
   sort_order: number
+  min_level: number
   variations: ExerciseVariation[] | null
   cues: StructuredCues | null
 }

@@ -100,6 +100,32 @@ function SpinalRotationSVG() {
   return (
     <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <Mat />
+      {/* Side-lying figure — knees bent, top arm reaching back */}
+      {/* Head on arm */}
+      <ellipse cx="85" cy="60" rx="5" ry="4.5" {...body} />
+      {/* Bottom arm as pillow */}
+      <path d="M90 62 L95 62" {...thin} />
+      {/* Torso */}
+      <path d="M80 62 Q70 62 58 64" {...body} />
+      {/* Top arm reaching back/up — rotation */}
+      <path d="M72 60 L65 48 L58 44" {...thin} />
+      {/* Rotation arrow hint */}
+      <path d="M60 46 L58 44 L62 44" {...thin} opacity={0.4} />
+      {/* Hips */}
+      <path d="M58 64 L54 65" {...body} />
+      {/* Knees bent stacked */}
+      <path d="M54 65 Q45 60 38 62" {...body} />
+      <path d="M38 62 L32 66" {...body} />
+      <path d="M54 65 Q46 62 40 64" {...body} />
+      <path d="M40 64 L34 68" {...body} />
+    </svg>
+  )
+}
+
+function SpinalRotationSupineSVG() {
+  return (
+    <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Mat />
       {/* Head */}
       <ellipse cx="60" cy="61" rx="5" ry="4.5" {...body} />
       {/* Torso supine */}
@@ -940,9 +966,12 @@ function SpineTwistAdvancedSVG() {
 const SVG_MAP: Record<string, () => React.JSX.Element> = {
   // Warm-Up
   'Breathing': BreathingSVG,
+  'Breathing Awareness': BreathingSVG,
+  'Breathing + Activation': BreathingSVG,
   'Imprint & Release': ImprintReleaseSVG,
   'Hip Release': HipReleaseSVG,
   'Spinal Rotation': SpinalRotationSVG,
+  'Spinal Rotation Supine': SpinalRotationSupineSVG,
   'Cat Stretch': CatStretchSVG,
   'Hip Rolls': HipRollsSVG,
   'Scapula Isolation': ScapulaIsolationSVG,
@@ -953,6 +982,9 @@ const SVG_MAP: Record<string, () => React.JSX.Element> = {
   // Layer 1
   'Ab Prep': AbPrepSVG,
   'Breast Stroke Preps 1–3': BreastStrokePrepsSVG,
+  'Breast Stroke Prep 1': BreastStrokePrepsSVG,
+  'Breast Stroke Prep 2': BreastStrokePrepsSVG,
+  'Breast Stroke Prep 3': BreastStrokePrepsSVG,
   'Shell Stretch': ShellStretchSVG,
   'Hundred': HundredSVG,
   'Half Roll Back': HalfRollBackSVG,

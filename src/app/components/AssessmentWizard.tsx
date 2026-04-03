@@ -61,10 +61,10 @@ const BACK_VIEW_REGIONS = [
 
 /* ─── scapulae clusters ─── */
 const SCAPULAE_CLUSTERS = [
-  { label: 'Position', options: ['neutral', 'protracted', 'retracted'] },
-  { label: 'Elevation', options: ['elevated', 'depressed'] },
-  { label: 'Rotation', options: ['upwardly rotated', 'downwardly rotated'] },
-  { label: 'Other', options: ['winging', 'anterior tilt'] },
+  { label: 'Position', options: ['neutral', 'protracted', 'retracted'], multiSelect: false },
+  { label: 'Elevation', options: ['elevated', 'depressed'], multiSelect: false },
+  { label: 'Rotation', options: ['upwardly rotated', 'downwardly rotated'], multiSelect: false },
+  { label: 'Other', options: ['winging', 'anterior tilt'], multiSelect: true },
 ]
 
 /* ─── non-bilateral clusters ─── */
@@ -159,6 +159,7 @@ const EXCLUSIVE_GROUPS: Record<string, string[][]> = {
 const SINGLE_SELECT_REGIONS = new Set([
   'sideView:head', 'sideView:cervical_spine', 'sideView:upper_thoracic',
   'sideView:lower_thoracic', 'sideView:lumbar_spine', 'sideView:pelvis',
+  'frontView:knees',
 ])
 
 /** Check whether a region has any non-neutral selected value that matches a target */
@@ -522,13 +523,14 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     })
   }, [])
 
-  /** Toggle a value for a specific side within a cluster (e.g. scapulae) — single-select per cluster */
+  /** Toggle a value for a specific side within a cluster (e.g. scapulae) — single-select per cluster unless multiSelect */
   const toggleClusterValue = useCallback((
     viewKey: 'sideView' | 'frontView' | 'backView',
     regionKey: string,
     side: 'left' | 'right',
     option: string,
     clusterOptions: string[],
+    multiSelect?: boolean,
   ) => {
     setState(prev => {
       const view = prev[viewKey]
@@ -539,6 +541,9 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       let newVals: string[]
       if (sideVals.includes(option)) {
         newVals = sideVals.filter(v => v !== option)
+      } else if (multiSelect) {
+        // Multi-select: just add it without removing others in the cluster
+        newVals = [...sideVals, option]
       } else {
         // Remove other options from same cluster, add this one
         newVals = sideVals.filter(v => !clusterOptions.includes(v))
@@ -868,7 +873,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
-                                  onChange={() => toggleClusterValue(viewKey, region.key, side, opt, cluster.options)}
+                                  onChange={() => toggleClusterValue(viewKey, region.key, side, opt, cluster.options, cluster.multiSelect)}
                                   className="w-3 h-3 accent-primary rounded"
                                 />
                                 <span className="capitalize leading-tight">{opt}</span>
@@ -1591,7 +1596,10 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   }
 
   const handleHomeClick = () => {
-    if (step > 0) {
+    if (step === 5) {
+      // On results step — show dialog with PDF option
+      setShowLeaveDialog(true)
+    } else if (step > 0) {
       setShowLeaveDialog(true)
     } else {
       router.push('/')
@@ -1617,21 +1625,49 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowLeaveDialog(false)} />
           <div className="relative bg-white rounded-2xl border border-border shadow-xl p-6 sm:p-8 max-w-sm w-full mx-4">
-            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">Leave Assessment?</h3>
-            <p className="text-[13px] text-muted mb-6">You have an assessment in progress. What would you like to do?</p>
+            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
+              {step === 5 ? 'Leave Results?' : 'Leave Assessment?'}
+            </h3>
+            <p className="text-[13px] text-muted mb-6">
+              {step === 5
+                ? 'Would you like to export the results before leaving?'
+                : 'You have an assessment in progress. What would you like to do?'}
+            </p>
             <div className="space-y-2.5">
-              <button
-                onClick={handleSaveDraft}
-                className="w-full text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-4 py-2.5 rounded-xl shadow-sm shadow-primary/20"
-              >
-                Save Draft &amp; Go Home
-              </button>
-              <button
-                onClick={handleDiscard}
-                className="w-full text-[13px] font-medium text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 hover:bg-red-50 transition-all px-4 py-2.5 rounded-xl"
-              >
-                Discard &amp; Go Home
-              </button>
+              {step === 5 ? (
+                <>
+                  <button
+                    onClick={() => { window.print(); }}
+                    className="w-full text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-4 py-2.5 rounded-xl shadow-sm shadow-primary/20 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    Export PDF
+                  </button>
+                  <button
+                    onClick={() => { setShowLeaveDialog(false); router.push('/'); }}
+                    className="w-full text-[13px] font-medium text-foreground/60 hover:text-foreground border border-border hover:border-foreground/20 transition-all px-4 py-2.5 rounded-xl"
+                  >
+                    Go Home
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleSaveDraft}
+                    className="w-full text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-4 py-2.5 rounded-xl shadow-sm shadow-primary/20"
+                  >
+                    Save Draft &amp; Go Home
+                  </button>
+                  <button
+                    onClick={handleDiscard}
+                    className="w-full text-[13px] font-medium text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 hover:bg-red-50 transition-all px-4 py-2.5 rounded-xl"
+                  >
+                    Discard &amp; Go Home
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => setShowLeaveDialog(false)}
                 className="w-full text-[13px] font-medium text-foreground/50 hover:text-foreground/70 transition-colors px-4 py-2.5 rounded-xl hover:bg-black/[0.03]"
