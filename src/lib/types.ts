@@ -76,6 +76,7 @@ export interface ClassPlan {
 export interface PosturalAssessment {
   id: string
   user_id: string
+  client_id: string | null
   client_name: string
   assessment_date: string
   side_view: Record<string, any>
@@ -86,6 +87,32 @@ export interface PosturalAssessment {
   suggested_posture: string | null
   confirmed_posture: string | null
   notes: string | null
+  client_intake: Record<string, any> | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Client {
+  id: string
+  user_id: string
+  first_name: string
+  last_name: string
+  age: number | null
+  intake: Record<string, any>
+  consent_given: boolean
+  consent_date: string | null
+  notes: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientClassPlan {
+  id: string
+  client_id: string
+  user_id: string
+  name: string
+  exercise_ids: string[]
+  notes: string
   created_at: string
   updated_at: string
 }

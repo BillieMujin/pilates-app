@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import ExerciseBrowser from './components/ExerciseBrowser'
 import type { Exercise, Favorite, ClassPlan } from '@/lib/types'
 
@@ -54,6 +55,7 @@ export default async function Home() {
           initialSavedPlans={savedPlans}
         />
       </main>
+      <Footer />
     </>
   )
 }

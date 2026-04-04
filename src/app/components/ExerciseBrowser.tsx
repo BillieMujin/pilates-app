@@ -908,9 +908,6 @@ function ExerciseCard({
                 <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-black/[0.03] text-foreground/30">Awareness</span>
               )}
               {exercise.reps && <span className="shrink-0 text-[11px] font-medium text-foreground/30 bg-white/80 px-2 py-0.5 rounded-md">{exercise.reps}</span>}
-              {exercise.min_level > 1 && (
-                <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600/70 border border-amber-500/15">L{exercise.min_level}+</span>
-              )}
             </div>
             {/* Posture numerals only shown when posture filter is active */}
           </div>

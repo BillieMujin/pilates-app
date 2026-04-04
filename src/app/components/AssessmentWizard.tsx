@@ -17,7 +17,7 @@ const POSTURE_META: Record<string, { label: string; numeral: string; color: stri
   swayback:      { label: 'Sway Back',          numeral: 'VI',  color: '#9a7aaa' },
 }
 
-const STEP_LABELS = ['Client Info', 'Side View', 'Front View', 'Back View', 'Spine Sequencing', 'Results']
+const STEP_LABELS = ['Client Info', 'Intake', 'Side View', 'Front View', 'Back View', 'Spine Sequencing', 'Results']
 
 const STORAGE_KEY = 'pilates_assessment_draft'
 
@@ -99,9 +99,40 @@ interface RegionValue {
   subOption?: string
 }
 
+interface ClientIntake {
+  dateOfBirth: string
+  occupation: string
+  sittingHours: string
+  medicalConditions: string
+  pregnantPostnatal: string
+  pregnantPostnatalDetails: string
+  medication: string
+  medicationDetails: string
+  surgeries: string
+  surgeryDetails: string
+  currentInjuries: string
+  currentInjuryDetails: string
+  previousInjuries: string
+  previousInjuryDetails: string
+  recurringPain: string[]
+  painTiming: string[]
+  activityLevel: string
+  currentActivities: string
+  activityFrequency: string
+  repetitiveActivities: string
+  difficultMovements: string
+  functionalConcerns: string[]
+  medicalRestrictions: string
+  pilatesExperience: string
+  pilatesGoals: string[]
+  specificGoals: string
+  anythingElse: string
+}
+
 interface WizardState {
   clientName: string
   assessmentDate: string
+  clientIntake: ClientIntake
   sideView: Record<string, RegionValue>
   frontView: Record<string, RegionValue>
   backView: Record<string, RegionValue>
@@ -124,11 +155,42 @@ interface Props {
 
 /* ─── initial state ─── */
 
+const EMPTY_INTAKE: ClientIntake = {
+  dateOfBirth: '',
+  occupation: '',
+  sittingHours: '',
+  medicalConditions: '',
+  pregnantPostnatal: '',
+  pregnantPostnatalDetails: '',
+  medication: '',
+  medicationDetails: '',
+  surgeries: '',
+  surgeryDetails: '',
+  currentInjuries: '',
+  currentInjuryDetails: '',
+  previousInjuries: '',
+  previousInjuryDetails: '',
+  recurringPain: [],
+  painTiming: [],
+  activityLevel: '',
+  currentActivities: '',
+  activityFrequency: '',
+  repetitiveActivities: '',
+  difficultMovements: '',
+  functionalConcerns: [],
+  medicalRestrictions: '',
+  pilatesExperience: '',
+  pilatesGoals: [],
+  specificGoals: '',
+  anythingElse: '',
+}
+
 function createInitialState(): WizardState {
   const today = new Date().toISOString().split('T')[0]
   return {
     clientName: '',
     assessmentDate: today,
+    clientIntake: { ...EMPTY_INTAKE },
     sideView: {},
     frontView: {},
     backView: {},
@@ -142,6 +204,216 @@ function createInitialState(): WizardState {
     confirmedPosture: null,
     notes: '',
   }
+}
+
+/* ─── intake constants ─── */
+
+const PAIN_AREAS = ['Neck', 'Upper back', 'Lower back', 'Shoulders', 'Hips', 'Knees', 'Ankles & feet', 'Wrists & hands']
+const PAIN_TIMING = ['At rest', 'During movement', 'After prolonged sitting', 'After prolonged standing', 'At night', 'Morning stiffness']
+const FUNCTIONAL_CONCERNS = ['Balance issues', 'Stiffness', 'Weakness', 'Numbness or tingling', 'Shortness of breath during mild activity', 'Joint clicking or popping']
+const PILATES_GOALS = ['Pain relief', 'Posture improvement', 'Flexibility', 'Strength', 'Rehabilitation', 'Stress relief', 'Sport performance', 'General wellbeing']
+
+/* ─── intake form ─── */
+
+function IntakeForm({ intake, onChange }: { intake: ClientIntake; onChange: (v: ClientIntake) => void }) {
+  const update = (field: keyof ClientIntake, value: string | string[]) => {
+    onChange({ ...intake, [field]: value })
+  }
+  const toggleMulti = (field: keyof ClientIntake, value: string) => {
+    const arr = (intake[field] as string[]) || []
+    const next = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
+    onChange({ ...intake, [field]: next })
+  }
+
+  const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all'
+  const labelCls = 'block mb-1.5 text-[13px] font-medium text-foreground'
+  const hintCls = 'text-[11px] text-muted mt-1'
+
+  const YesNo = ({ field, detailField, detailPlaceholder }: { field: keyof ClientIntake; detailField: keyof ClientIntake; detailPlaceholder: string }) => (
+    <div>
+      <div className="flex gap-3 mb-2">
+        {['Yes', 'No'].map(opt => (
+          <label key={opt} className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all text-[13px] border ${
+            intake[field] === opt.toLowerCase() ? 'bg-primary/[0.06] border-primary/20 font-medium' : 'border-border hover:bg-black/[0.02]'
+          }`}>
+            <input type="radio" name={field} checked={intake[field] === opt.toLowerCase()} onChange={() => update(field, opt.toLowerCase())} className="w-3.5 h-3.5 accent-primary" />
+            {opt}
+          </label>
+        ))}
+      </div>
+      {intake[field] === 'yes' && (
+        <input type="text" value={(intake[detailField] as string) || ''} onChange={e => update(detailField, e.target.value)} placeholder={detailPlaceholder} className={inputCls} />
+      )}
+    </div>
+  )
+
+  const MultiSelect = ({ options, field }: { options: string[]; field: keyof ClientIntake }) => (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => {
+        const selected = ((intake[field] as string[]) || []).includes(opt)
+        return (
+          <button key={opt} type="button" onClick={() => toggleMulti(field, opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
+            selected ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
+          }`}>
+            {opt}
+          </button>
+        )
+      })}
+    </div>
+  )
+
+  return (
+    <div className="max-w-lg mx-auto space-y-4">
+      {/* Section 1: Personal */}
+      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Personal Information</h4>
+        <div>
+          <label className={labelCls}>Date of Birth</label>
+          <input type="date" value={intake.dateOfBirth} onChange={e => update('dateOfBirth', e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Occupation</label>
+          <input type="text" value={intake.occupation} onChange={e => update('occupation', e.target.value)} placeholder="e.g. office worker, teacher, retired" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>How many hours per day do you sit?</label>
+          <select value={intake.sittingHours} onChange={e => update('sittingHours', e.target.value)} className={inputCls}>
+            <option value="">Select...</option>
+            {['0–2', '2–4', '4–6', '6–8', '8–10', '10+'].map(v => <option key={v} value={v}>{v} hours</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Section 2: Health & Medical */}
+      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Health & Medical History</h4>
+        <div>
+          <label className={labelCls}>Do you have any current medical conditions?</label>
+          <input type="text" value={intake.medicalConditions} onChange={e => update('medicalConditions', e.target.value)} placeholder="Describe or leave blank" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Are you currently pregnant or postnatal?</label>
+          <YesNo field="pregnantPostnatal" detailField="pregnantPostnatalDetails" detailPlaceholder="How many weeks/months?" />
+        </div>
+        <div>
+          <label className={labelCls}>Are you taking any medication that affects movement, balance, or bone density?</label>
+          <YesNo field="medication" detailField="medicationDetails" detailPlaceholder="Which medication?" />
+        </div>
+        <div>
+          <label className={labelCls}>Have you had any surgeries?</label>
+          <YesNo field="surgeries" detailField="surgeryDetails" detailPlaceholder="What & when?" />
+        </div>
+      </div>
+
+      {/* Section 3: Injuries & Pain */}
+      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Injuries & Pain</h4>
+        <div>
+          <label className={labelCls}>Do you have any current injuries?</label>
+          <YesNo field="currentInjuries" detailField="currentInjuryDetails" detailPlaceholder="Location and how long?" />
+        </div>
+        <div>
+          <label className={labelCls}>Do you have any previous injuries that still affect you?</label>
+          <YesNo field="previousInjuries" detailField="previousInjuryDetails" detailPlaceholder="What & when?" />
+        </div>
+        <div>
+          <label className={labelCls}>Do you experience recurring pain?</label>
+          <MultiSelect options={PAIN_AREAS} field="recurringPain" />
+        </div>
+        {(intake.recurringPain?.length ?? 0) > 0 && (
+          <div>
+            <label className={labelCls}>When does it typically occur?</label>
+            <MultiSelect options={PAIN_TIMING} field="painTiming" />
+          </div>
+        )}
+      </div>
+
+      {/* Section 4: Daily Life & Movement */}
+      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Daily Life & Movement</h4>
+        <div>
+          <label className={labelCls}>How would you describe your activity level?</label>
+          <div className="flex flex-wrap gap-2">
+            {['Sedentary', 'Lightly active', 'Moderately active', 'Very active'].map(opt => (
+              <button key={opt} type="button" onClick={() => update('activityLevel', intake.activityLevel === opt ? '' : opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
+                intake.activityLevel === opt ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
+              }`}>
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className={labelCls}>What physical activities or sports do you currently do?</label>
+          <input type="text" value={intake.currentActivities} onChange={e => update('currentActivities', e.target.value)} placeholder="e.g. walking, running, yoga, swimming, none" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>How often?</label>
+          <div className="flex flex-wrap gap-2">
+            {['Daily', '3–5x week', '1–2x week', 'Occasionally', 'Not currently active'].map(opt => (
+              <button key={opt} type="button" onClick={() => update('activityFrequency', intake.activityFrequency === opt ? '' : opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
+                intake.activityFrequency === opt ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
+              }`}>
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className={labelCls}>Do you have any daily activities that involve repetitive movement?</label>
+          <input type="text" value={intake.repetitiveActivities} onChange={e => update('repetitiveActivities', e.target.value)} placeholder="e.g. gardening, carrying children, playing an instrument, driving long hours" className={inputCls} />
+        </div>
+      </div>
+
+      {/* Section 5: Functional Concerns */}
+      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Functional Concerns</h4>
+        <div>
+          <label className={labelCls}>Are there any movements you find difficult or avoid?</label>
+          <input type="text" value={intake.difficultMovements} onChange={e => update('difficultMovements', e.target.value)} placeholder="e.g. bending forward, looking over shoulder, getting up from floor" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Do you experience any of the following?</label>
+          <MultiSelect options={FUNCTIONAL_CONCERNS} field="functionalConcerns" />
+        </div>
+        <div>
+          <label className={labelCls}>Is there anything your doctor or physiotherapist has told you to avoid?</label>
+          <input type="text" value={intake.medicalRestrictions} onChange={e => update('medicalRestrictions', e.target.value)} placeholder="Describe or leave blank" className={inputCls} />
+        </div>
+      </div>
+
+      {/* Section 6: Pilates Goals */}
+      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Pilates Goals</h4>
+        <div>
+          <label className={labelCls}>Have you done Pilates before?</label>
+          <div className="flex flex-wrap gap-2">
+            {['Never', 'A few times', 'Regularly in the past', 'Currently practising'].map(opt => (
+              <button key={opt} type="button" onClick={() => update('pilatesExperience', intake.pilatesExperience === opt ? '' : opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
+                intake.pilatesExperience === opt ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
+              }`}>
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className={labelCls}>What are your goals with Pilates?</label>
+          <MultiSelect options={PILATES_GOALS} field="pilatesGoals" />
+        </div>
+        <div>
+          <label className={labelCls}>Is there anything specific you&apos;d like to work on or improve?</label>
+          <input type="text" value={intake.specificGoals} onChange={e => update('specificGoals', e.target.value)} placeholder="Free text" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Anything else you&apos;d like me to know?</label>
+          <textarea value={intake.anythingElse} onChange={e => update('anythingElse', e.target.value)} placeholder="Free text" rows={3} className={inputCls} />
+        </div>
+      </div>
+
+      <p className="text-[11px] text-center text-muted/50">All fields are optional — fill in what applies.</p>
+    </div>
+  )
 }
 
 /* ─── helpers ─── */
@@ -171,9 +443,9 @@ function regionHasValue(rv: RegionValue | undefined, target: string): boolean {
 /** Get the list of regions for a given step */
 function getRegionsForStep(step: number): { key: string; label: string; options: string[]; bilateral?: boolean; guidance?: string; hasClusters?: boolean; hasSubOption?: boolean; lateralSubOptions?: string[]; hasNonBilateralClusters?: boolean }[] {
   switch (step) {
-    case 1: return SIDE_VIEW_REGIONS
-    case 2: return FRONT_VIEW_REGIONS
-    case 3: return BACK_VIEW_REGIONS
+    case 2: return SIDE_VIEW_REGIONS
+    case 3: return FRONT_VIEW_REGIONS
+    case 4: return BACK_VIEW_REGIONS
     default: return []
   }
 }
@@ -181,9 +453,9 @@ function getRegionsForStep(step: number): { key: string; label: string; options:
 /** Get the view data for a given step */
 function getViewDataForStep(state: WizardState, step: number): Record<string, RegionValue> {
   switch (step) {
-    case 1: return state.sideView
-    case 2: return state.frontView
-    case 3: return state.backView
+    case 2: return state.sideView
+    case 3: return state.frontView
+    case 4: return state.backView
     default: return {}
   }
 }
@@ -367,7 +639,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   const detection = useMemo(() => detectPosture(state), [state])
 
   useEffect(() => {
-    if (step === 5 && detection.posture) {
+    if (step === 6 && detection.posture) {
       setState(prev => ({ ...prev, suggestedPosture: detection.posture }))
     }
   }, [step, detection.posture])
@@ -627,6 +899,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       user_id: user.id,
       client_name: state.clientName,
       assessment_date: state.assessmentDate,
+      client_intake: state.clientIntake,
       side_view: state.sideView,
       front_view: state.frontView,
       back_view: state.backView,
@@ -677,6 +950,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     setState({
       clientName: a.client_name,
       assessmentDate: a.assessment_date,
+      clientIntake: { ...EMPTY_INTAKE, ...((a as unknown as Record<string, unknown>).client_intake as Partial<ClientIntake> || {}) },
       sideView: migrateView(a.side_view as Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>),
       frontView: migrateView(a.front_view as Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>),
       backView: migrateView(a.back_view as Record<string, { value?: string; values?: string[]; right?: boolean; left?: boolean }>),
@@ -686,7 +960,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       notes: a.notes || '',
     })
     setEditingId(a.id)
-    setStep(5)
+    setStep(6)
     setShowHistory(false)
   }
 
@@ -697,10 +971,11 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  // canProceed: step 0 requires client name; steps 1-3 require all regions answered
+  // canProceed: step 0 requires client name; step 1 always (intake is optional); steps 2-4 require all regions answered
   const canProceed = useMemo(() => {
     if (step === 0) return state.clientName.trim().length > 0
-    if (step >= 1 && step <= 3) return unansweredRegions.length === 0
+    if (step === 1) return true // intake is optional
+    if (step >= 2 && step <= 4) return unansweredRegions.length === 0
     return true
   }, [step, state.clientName, unansweredRegions])
 
@@ -1184,21 +1459,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         )
 
       case 1:
-        return (
-          <div>
-            {unansweredRegions.length > 0 && (
-              <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
-                <span className="font-medium">{unansweredRegions.length} region{unansweredRegions.length > 1 ? 's' : ''} still need{unansweredRegions.length === 1 ? 's' : ''} an answer</span>
-                <span className="text-amber-600 ml-1">
-                  — {getRegionsForStep(1).filter(r => unansweredRegions.includes(r.key)).map(r => r.label).join(', ')}
-                </span>
-              </div>
-            )}
-            <div className="grid gap-4 sm:grid-cols-2">
-              {SIDE_VIEW_REGIONS.map(r => renderRegionCard(r, state.sideView, 'sideView'))}
-            </div>
-          </div>
-        )
+        return <IntakeForm intake={state.clientIntake} onChange={(intake: ClientIntake) => setState(prev => ({ ...prev, clientIntake: intake }))} />
 
       case 2:
         return (
@@ -1212,7 +1473,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
               </div>
             )}
             <div className="grid gap-4 sm:grid-cols-2">
-              {FRONT_VIEW_REGIONS.map(r => renderRegionCard(r, state.frontView, 'frontView'))}
+              {SIDE_VIEW_REGIONS.map(r => renderRegionCard(r, state.sideView, 'sideView'))}
             </div>
           </div>
         )
@@ -1229,12 +1490,29 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
               </div>
             )}
             <div className="grid gap-4 sm:grid-cols-2">
-              {BACK_VIEW_REGIONS.map(r => renderRegionCard(r, state.backView, 'backView'))}
+              {FRONT_VIEW_REGIONS.map(r => renderRegionCard(r, state.frontView, 'frontView'))}
             </div>
           </div>
         )
 
       case 4:
+        return (
+          <div>
+            {unansweredRegions.length > 0 && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
+                <span className="font-medium">{unansweredRegions.length} region{unansweredRegions.length > 1 ? 's' : ''} still need{unansweredRegions.length === 1 ? 's' : ''} an answer</span>
+                <span className="text-amber-600 ml-1">
+                  — {getRegionsForStep(4).filter(r => unansweredRegions.includes(r.key)).map(r => r.label).join(', ')}
+                </span>
+              </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {BACK_VIEW_REGIONS.map(r => renderRegionCard(r, state.backView, 'backView'))}
+            </div>
+          </div>
+        )
+
+      case 5:
         return (
           <div className="max-w-lg mx-auto space-y-6">
             <div className="bg-white rounded-2xl border border-border p-6">
@@ -1327,7 +1605,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
           </div>
         )
 
-      case 5: {
+      case 6: {
         // Collect all deviations across all views for the findings summary
         const allFindings: { view: string; region: string; finding: string; notes?: string }[] = []
         const viewConfigs: [string, Record<string, RegionValue>, typeof SIDE_VIEW_REGIONS][] = [
@@ -1596,7 +1874,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   }
 
   const handleHomeClick = () => {
-    if (step === 5) {
+    if (step === 6) {
       // On results step — show dialog with PDF option
       setShowLeaveDialog(true)
     } else if (step > 0) {
@@ -1626,15 +1904,15 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowLeaveDialog(false)} />
           <div className="relative bg-white rounded-2xl border border-border shadow-xl p-6 sm:p-8 max-w-sm w-full mx-4">
             <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-              {step === 5 ? 'Leave Results?' : 'Leave Assessment?'}
+              {step === 6 ? 'Leave Results?' : 'Leave Assessment?'}
             </h3>
             <p className="text-[13px] text-muted mb-6">
-              {step === 5
+              {step === 6
                 ? 'Would you like to export the results before leaving?'
                 : 'You have an assessment in progress. What would you like to do?'}
             </p>
             <div className="space-y-2.5">
-              {step === 5 ? (
+              {step === 6 ? (
                 <>
                   <button
                     onClick={() => { window.print(); }}
@@ -1739,7 +2017,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         <h2 className="font-heading text-xl sm:text-2xl font-semibold text-foreground">
           {STEP_LABELS[step]}
         </h2>
-        {step >= 1 && step <= 3 && (
+        {step >= 2 && step <= 4 && (
           <p className="text-[13px] text-muted mt-1">
             Select the observed position(s) for each body region. Multiple selections allowed.
           </p>

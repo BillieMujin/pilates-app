@@ -175,7 +175,15 @@ export default function SignUpPage() {
               </button>
             </form>
 
-            <p className="text-center text-sm text-muted mt-6">
+            <p className="text-center text-[12px] text-muted/60 mt-5 leading-relaxed px-2">
+              By creating an account, you agree to our{' '}
+              <Link href="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              . Your data is stored securely and processed in accordance with GDPR.
+            </p>
+
+            <p className="text-center text-sm text-muted mt-4">
               Already have an account?{' '}
               <Link
                 href="/auth/login"
