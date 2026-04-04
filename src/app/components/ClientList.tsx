@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -14,6 +14,8 @@ const POSTURE_META: Record<string, { label: string; color: string }> = {
   military:      { label: 'Military',           color: '#7a9a80' },
   swayback:      { label: 'Sway Back',          color: '#9a7aaa' },
 }
+
+const SEX_LABELS: Record<string, string> = { female: 'Female', male: 'Male', prefer_not_to_say: 'Prefer not to say' }
 
 interface Props {
   clients: Client[]
@@ -30,19 +32,32 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
   const [consent, setConsent] = useState(false)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
+  const [contextMenu, setContextMenu] = useState<{ clientId: string; x: number; y: number } | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   const filtered = initialClients.filter(c => {
     const q = search.toLowerCase()
     return `${c.first_name} ${c.last_name}`.toLowerCase().includes(q)
   })
 
+  // Close context menu on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setContextMenu(null)
+      }
+    }
+    if (contextMenu) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [contextMenu])
+
   const handleCreate = async () => {
     if (!firstName.trim() || !consent) return
     setSaving(true)
-
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const { data, error } = await supabase
       .from('clients')
       .insert({
@@ -55,11 +70,91 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
       })
       .select()
       .single()
-
     if (!error && data) {
       router.push(`/clients/${data.id}`)
     }
     setSaving(false)
+  }
+
+  const handleLongPressStart = (clientId: string, e: React.TouchEvent | React.MouseEvent) => {
+    e.preventDefault()
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    longPressTimer.current = setTimeout(() => {
+      setContextMenu({
+        clientId,
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      })
+    }, 500)
+  }
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }
+
+  /* ─── export client data as text ─── */
+  const exportClientData = useCallback((client: Client) => {
+    const intake = client.intake || {}
+    const assessment = assessmentMap[client.id]
+    const lines = [
+      `CLIENT DATA EXPORT`,
+      `Generated: ${new Date().toLocaleDateString()}`,
+      ``,
+      `── CLIENT INFO ──`,
+      `Name: ${[client.first_name, client.last_name].filter(Boolean).join(' ')}`,
+      `Age: ${client.age || '-'}`,
+      `Created: ${new Date(client.created_at).toLocaleDateString()}`,
+      `Consent: ${client.consent_given ? 'Yes' : 'No'}${client.consent_date ? ` (${new Date(client.consent_date).toLocaleDateString()})` : ''}`,
+      ``,
+      `── INTAKE ──`,
+      `Sex: ${SEX_LABELS[intake.sex] || intake.sex || '-'}`,
+      `Occupation: ${intake.occupation || '-'}`,
+      `Typical day: ${[intake.typicalDay, intake.typicalDayDetails].filter(Boolean).join(' — ') || '-'}`,
+      `Medical conditions: ${intake.medicalConditions || '-'}`,
+      `Pregnant/postnatal: ${intake.pregnantPostnatal || '-'}${intake.pregnantPostnatalDetails ? ` — ${intake.pregnantPostnatalDetails}` : ''}`,
+      `Medication: ${intake.medication || '-'}${intake.medicationDetails ? ` — ${intake.medicationDetails}` : ''}`,
+      `Surgeries: ${intake.surgeries || '-'}${intake.surgeryDetails ? ` — ${intake.surgeryDetails}` : ''}`,
+      `Difficult movements: ${intake.difficultMovements || '-'}`,
+      `Functional concerns: ${intake.functionalConcerns?.join(', ') || '-'}`,
+      `Medical restrictions: ${intake.medicalRestrictions || '-'}`,
+      `Current injuries: ${intake.currentInjuries || '-'}${intake.currentInjuryDetails ? ` — ${intake.currentInjuryDetails}` : ''}`,
+      `Previous injuries: ${intake.previousInjuries || '-'}${intake.previousInjuryDetails ? ` — ${intake.previousInjuryDetails}` : ''}`,
+      `Recurring pain: ${[...(intake.recurringPain || []), intake.recurringPainOther].filter(Boolean).join(', ') || '-'}`,
+      `Pain timing: ${[...(intake.painTiming || []), intake.painTimingOther].filter(Boolean).join(', ') || '-'}`,
+      `Activities: ${[...(intake.currentActivities || []), intake.currentActivitiesOther].filter(Boolean).join(', ') || '-'}`,
+      `Frequency: ${intake.activityFrequency || '-'}`,
+      `Pilates experience: ${intake.pilatesExperience || '-'}`,
+      `Goals: ${intake.pilatesGoals?.join(', ') || '-'}`,
+      `Specific goals: ${intake.specificGoals || '-'}`,
+      `Other: ${intake.anythingElse || '-'}`,
+      ``,
+      `── LAST ASSESSMENT ──`,
+      assessment ? `Date: ${assessment.date}\nPosture: ${assessment.posture ? (POSTURE_META[assessment.posture]?.label || assessment.posture) : '-'}` : 'No assessments yet',
+      ``,
+      `── INSTRUCTOR NOTES ──`,
+      client.notes || '(none)',
+    ]
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${[client.first_name, client.last_name].filter(Boolean).join('-').toLowerCase()}-data.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [assessmentMap])
+
+  /* ─── delete client ─── */
+  const handleDelete = async (clientId: string) => {
+    setDeleting(clientId)
+    await supabase.from('postural_assessments').delete().eq('client_id', clientId)
+    await supabase.from('client_class_plans').delete().eq('client_id', clientId)
+    await supabase.from('clients').delete().eq('id', clientId)
+    setContextMenu(null)
+    setDeleting(null)
+    router.refresh()
   }
 
   return (
@@ -96,71 +191,36 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block mb-1 text-[12px] font-medium text-foreground/60">First Name *</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
-                placeholder="First name"
-                className="w-full px-3.5 py-2 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 transition-all"
-              />
+              <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" className="w-full px-3.5 py-2 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 transition-all" />
             </div>
             <div>
               <label className="block mb-1 text-[12px] font-medium text-foreground/60">Last Name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
-                placeholder="Last name"
-                className="w-full px-3.5 py-2 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 transition-all"
-              />
+              <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" className="w-full px-3.5 py-2 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 transition-all" />
             </div>
             <div>
               <label className="block mb-1 text-[12px] font-medium text-foreground/60">Age</label>
-              <input
-                type="number"
-                value={age}
-                onChange={e => setAge(e.target.value)}
-                placeholder="e.g. 42"
-                min="1"
-                max="120"
-                className="w-full px-3.5 py-2 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 transition-all"
-              />
+              <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="e.g. 42" min="1" max="120" className="w-full px-3.5 py-2 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 transition-all" />
             </div>
           </div>
-
-          {/* Consent */}
           <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border bg-background/50">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={e => setConsent(e.target.checked)}
-              className="w-4 h-4 mt-0.5 accent-primary shrink-0"
-            />
+            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="w-4 h-4 mt-0.5 accent-primary shrink-0" />
             <span className="text-[12px] text-muted leading-relaxed">
               I confirm that this client will be sent an intake form where they can provide their personal and health data directly. The client will give their own consent before submitting. See our{' '}
-              <Link href="/privacy" className="text-primary hover:underline" onClick={e => e.stopPropagation()}>
-                Privacy Policy
-              </Link>{' '}
-              for full details.
+              <Link href="/privacy" className="text-primary hover:underline" onClick={e => e.stopPropagation()}>Privacy Policy</Link> for full details.
             </span>
           </label>
-
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleCreate}
-              disabled={!firstName.trim() || !consent || saving}
-              className="text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-5 py-2.5 rounded-xl shadow-sm shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
+            <button onClick={handleCreate} disabled={!firstName.trim() || !consent || saving} className="text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-5 py-2.5 rounded-xl shadow-sm shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed">
               {saving ? 'Creating...' : 'Create Client'}
             </button>
-            <button
-              onClick={() => { setShowForm(false); setFirstName(''); setLastName(''); setAge(''); setConsent(false) }}
-              className="text-[13px] font-medium text-muted hover:text-foreground transition-colors"
-            >
-              Cancel
-            </button>
+            <button onClick={() => { setShowForm(false); setFirstName(''); setLastName(''); setAge(''); setConsent(false) }} className="text-[13px] font-medium text-muted hover:text-foreground transition-colors">Cancel</button>
           </div>
         </div>
+      )}
+
+      {/* Hint */}
+      {filtered.length > 0 && (
+        <p className="text-[11px] text-muted/40 mb-3 text-right">Long-press a client for more options</p>
       )}
 
       {/* Client cards */}
@@ -177,29 +237,29 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map(client => {
             const lastAssessment = assessmentMap[client.id]
-            const hasIntake = client.intake && Object.keys(client.intake).length > 0
             const fullName = [client.first_name, client.last_name].filter(Boolean).join(' ')
 
             return (
               <button
                 key={client.id}
                 onClick={() => router.push(`/clients/${client.id}`)}
-                className="text-left bg-white rounded-2xl border border-border p-5 hover:border-primary/30 hover:shadow-sm hover:shadow-primary/5 transition-all group"
+                onContextMenu={e => { e.preventDefault(); handleLongPressStart(client.id, e) }}
+                onTouchStart={e => handleLongPressStart(client.id, e)}
+                onTouchEnd={handleLongPressEnd}
+                onTouchCancel={handleLongPressEnd}
+                className="text-left bg-white rounded-2xl border border-border p-5 hover:border-primary/30 hover:shadow-sm hover:shadow-primary/5 transition-all group relative select-none"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="font-heading text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors">
                       {fullName}
                     </h3>
-                    {client.age && (
-                      <span className="text-[12px] text-muted">Age {client.age}</span>
-                    )}
+                    {client.age && <span className="text-[12px] text-muted">Age {client.age}</span>}
                   </div>
                   <svg className="w-4 h-4 text-foreground/15 group-hover:text-primary/40 transition-colors mt-1" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                   </svg>
                 </div>
-
                 <div className="flex items-center gap-2 flex-wrap">
                   {(client as Client & { intake_completed_at?: string }).intake_completed_at ? (
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-green-50 text-green-600 border border-green-100">Intake completed</span>
@@ -212,10 +272,7 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
                         Last assessed: {lastAssessment.date}
                       </span>
                       {lastAssessment.posture && POSTURE_META[lastAssessment.posture] && (
-                        <span
-                          className="text-[10px] font-semibold px-2 py-0.5 rounded-md text-white"
-                          style={{ backgroundColor: POSTURE_META[lastAssessment.posture].color }}
-                        >
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md text-white" style={{ backgroundColor: POSTURE_META[lastAssessment.posture].color }}>
                           {POSTURE_META[lastAssessment.posture].label}
                         </span>
                       )}
@@ -227,6 +284,59 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
               </button>
             )
           })}
+        </div>
+      )}
+
+      {/* Context menu overlay */}
+      {contextMenu && (
+        <div className="fixed inset-0 z-50 bg-black/10 backdrop-blur-[1px]" onClick={() => setContextMenu(null)}>
+          <div
+            ref={menuRef}
+            className="absolute bg-white rounded-2xl shadow-xl border border-border overflow-hidden w-56 animate-in fade-in zoom-in-95"
+            style={{
+              left: Math.min(contextMenu.x - 112, window.innerWidth - 240),
+              top: Math.min(contextMenu.y - 20, window.innerHeight - 200),
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {(() => {
+              const client = initialClients.find(c => c.id === contextMenu.clientId)
+              if (!client) return null
+              const fullName = [client.first_name, client.last_name].filter(Boolean).join(' ')
+              return (
+                <>
+                  <div className="px-4 py-3 border-b border-border bg-background/50">
+                    <p className="text-[13px] font-semibold text-foreground truncate">{fullName}</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => { router.push(`/clients/${client.id}`); setContextMenu(null) }}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-foreground hover:bg-primary/[0.04] transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4 text-foreground/40" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                      Open profile
+                    </button>
+                    <button
+                      onClick={() => { exportClientData(client); setContextMenu(null) }}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-foreground hover:bg-primary/[0.04] transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4 text-foreground/40" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                      Export data
+                    </button>
+                    <div className="my-1 border-t border-border" />
+                    <button
+                      onClick={() => handleDelete(client.id)}
+                      disabled={deleting === client.id}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                      {deleting === client.id ? 'Deleting...' : 'Delete permanently'}
+                    </button>
+                  </div>
+                </>
+              )
+            })()}
+          </div>
         </div>
       )}
     </div>

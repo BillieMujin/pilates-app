@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -77,13 +77,19 @@ interface Props {
 export default function ClientProfile({ client, assessments, classPlans }: Props) {
   const router = useRouter()
   const supabase = createClient()
-  const [tab, setTab] = useState<'intake' | 'assessments' | 'plans'>('intake')
+  const [tab, setTab] = useState<'intake' | 'assessments' | 'plans' | 'photos'>('intake')
   const [editingNotes, setEditingNotes] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
   const [notes, setNotes] = useState(client.notes || '')
   const [linkCopied, setLinkCopied] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  /* ─── photos state ─── */
+  const [photos, setPhotos] = useState<{ name: string; url: string; created_at: string }[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [loadingPhotos, setLoadingPhotos] = useState(false)
+  const [photoDeleteTarget, setPhotoDeleteTarget] = useState<string | null>(null)
 
   const fullName = [client.first_name, client.last_name].filter(Boolean).join(' ')
   const intake: ClientIntake = { ...EMPTY_INTAKE, ...(client.intake as Partial<ClientIntake> || {}) }
@@ -129,11 +135,144 @@ export default function ClientProfile({ client, assessments, classPlans }: Props
     setDeleting(false)
   }
 
+  /* ─── export client data ─── */
+  const handleExport = useCallback(() => {
+    const lines = [
+      `CLIENT DATA EXPORT`,
+      `Generated: ${new Date().toLocaleDateString()}`,
+      ``,
+      `── CLIENT INFO ──`,
+      `Name: ${fullName}`,
+      `Age: ${client.age || '-'}`,
+      `Created: ${new Date(client.created_at).toLocaleDateString()}`,
+      `Consent: ${client.consent_given ? 'Yes' : 'No'}${client.consent_date ? ` (${new Date(client.consent_date).toLocaleDateString()})` : ''}`,
+      ``,
+      `── INTAKE ──`,
+      `Sex: ${SEX_LABELS[intake.sex] || intake.sex || '-'}`,
+      `Occupation: ${intake.occupation || '-'}`,
+      `Typical day: ${[intake.typicalDay, intake.typicalDayDetails].filter(Boolean).join(' — ') || '-'}`,
+      `Medical conditions: ${intake.medicalConditions || '-'}`,
+      `Pregnant/postnatal: ${intake.pregnantPostnatal || '-'}${intake.pregnantPostnatalDetails ? ` — ${intake.pregnantPostnatalDetails}` : ''}`,
+      `Medication: ${intake.medication || '-'}${intake.medicationDetails ? ` — ${intake.medicationDetails}` : ''}`,
+      `Surgeries: ${intake.surgeries || '-'}${intake.surgeryDetails ? ` — ${intake.surgeryDetails}` : ''}`,
+      `Difficult movements: ${intake.difficultMovements || '-'}`,
+      `Functional concerns: ${intake.functionalConcerns?.join(', ') || '-'}`,
+      `Medical restrictions: ${intake.medicalRestrictions || '-'}`,
+      `Current injuries: ${intake.currentInjuries || '-'}${intake.currentInjuryDetails ? ` — ${intake.currentInjuryDetails}` : ''}`,
+      `Previous injuries: ${intake.previousInjuries || '-'}${intake.previousInjuryDetails ? ` — ${intake.previousInjuryDetails}` : ''}`,
+      `Recurring pain: ${[...(intake.recurringPain || []), intake.recurringPainOther].filter(Boolean).join(', ') || '-'}`,
+      `Pain timing: ${[...(intake.painTiming || []), intake.painTimingOther].filter(Boolean).join(', ') || '-'}`,
+      `Activities: ${[...(intake.currentActivities || []), intake.currentActivitiesOther].filter(Boolean).join(', ') || '-'}`,
+      `Frequency: ${intake.activityFrequency || '-'}`,
+      `Pilates experience: ${intake.pilatesExperience || '-'}`,
+      `Goals: ${intake.pilatesGoals?.join(', ') || '-'}`,
+      `Specific goals: ${intake.specificGoals || '-'}`,
+      `Other: ${intake.anythingElse || '-'}`,
+      ``,
+      `── ASSESSMENTS (${assessments.length}) ──`,
+      ...(assessments.length > 0
+        ? assessments.map(a => {
+            const posture = a.confirmed_posture || a.suggested_posture
+            return `Date: ${a.assessment_date} | Posture: ${posture ? (POSTURE_META[posture]?.label || posture) : '-'}${a.notes ? ` | Notes: ${a.notes}` : ''}`
+          })
+        : ['No assessments yet']),
+      ``,
+      `── CLASS PLANS (${classPlans.length}) ──`,
+      ...(classPlans.length > 0
+        ? classPlans.map(p => `${p.name} — ${p.exercise_ids.length} exercises${p.notes ? ` | Notes: ${p.notes}` : ''}`)
+        : ['No class plans yet']),
+      ``,
+      `── INSTRUCTOR NOTES ──`,
+      client.notes || '(none)',
+    ]
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${fullName.replace(/\s+/g, '-').toLowerCase()}-data.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [fullName, client, intake, assessments, classPlans])
+
+  /* ─── load photos ─── */
+  const loadPhotos = useCallback(async () => {
+    setLoadingPhotos(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoadingPhotos(false); return }
+
+    const folder = `${user.id}/${client.id}`
+    const { data: files } = await supabase.storage
+      .from('client-photos')
+      .list(folder, { sortBy: { column: 'created_at', order: 'desc' } })
+
+    if (files && files.length > 0) {
+      const validFiles = files.filter(f => !f.name.startsWith('.'))
+      if (validFiles.length > 0) {
+        // Create signed URLs (1 hour expiry) since bucket is private
+        const paths = validFiles.map(f => `${folder}/${f.name}`)
+        const { data: signedUrls } = await supabase.storage
+          .from('client-photos')
+          .createSignedUrls(paths, 3600)
+
+        const photoList = validFiles.map((f, i) => ({
+          name: f.name,
+          url: signedUrls?.[i]?.signedUrl || '',
+          created_at: f.created_at || '',
+        })).filter(p => p.url)
+        setPhotos(photoList)
+      } else {
+        setPhotos([])
+      }
+    } else {
+      setPhotos([])
+    }
+    setLoadingPhotos(false)
+  }, [client.id, supabase])
+
+  useEffect(() => {
+    if (tab === 'photos') loadPhotos()
+  }, [tab, loadPhotos])
+
+  /* ─── upload photo ─── */
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setUploading(true)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setUploading(false); return }
+
+    const folder = `${user.id}/${client.id}`
+
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      await supabase.storage.from('client-photos').upload(`${folder}/${fileName}`, file)
+    }
+
+    await loadPhotos()
+    setUploading(false)
+    // Reset input
+    e.target.value = ''
+  }
+
+  /* ─── delete photo ─── */
+  const handlePhotoDelete = async (fileName: string) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    setPhotoDeleteTarget(fileName)
+    const folder = `${user.id}/${client.id}`
+    await supabase.storage.from('client-photos').remove([`${folder}/${fileName}`])
+    await loadPhotos()
+    setPhotoDeleteTarget(null)
+  }
+
   /* ─── tab content ─── */
   const tabs = [
     { key: 'intake' as const, label: 'Intake' },
     { key: 'assessments' as const, label: `Assessments (${assessments.length})` },
     { key: 'plans' as const, label: `Class Plans (${classPlans.length})` },
+    { key: 'photos' as const, label: 'Photos' },
   ]
 
   return (
@@ -175,6 +314,15 @@ export default function ClientProfile({ client, assessments, classPlans }: Props
                 )}
               </div>
             </div>
+            <button
+              onClick={handleExport}
+              className="shrink-0 inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground/50 hover:text-primary bg-white border border-border hover:border-primary/30 px-4 py-2 rounded-xl transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Export
+            </button>
           </div>
 
           {/* Tabs */}
@@ -221,6 +369,17 @@ export default function ClientProfile({ client, assessments, classPlans }: Props
 
         {tab === 'plans' && (
           <PlansTab classPlans={classPlans} clientId={client.id} />
+        )}
+
+        {tab === 'photos' && (
+          <PhotosTab
+            photos={photos}
+            loading={loadingPhotos}
+            uploading={uploading}
+            deleteTarget={photoDeleteTarget}
+            onUpload={handlePhotoUpload}
+            onDelete={handlePhotoDelete}
+          />
         )}
       </div>
 
@@ -570,6 +729,132 @@ function PlansTab({ classPlans, clientId }: { classPlans: ClientClassPlan[]; cli
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════
+   PHOTOS TAB
+   ═══════════════════════════════════════════════════ */
+
+function PhotosTab({
+  photos, loading, uploading, deleteTarget, onUpload, onDelete,
+}: {
+  photos: { name: string; url: string; created_at: string }[]
+  loading: boolean
+  uploading: boolean
+  deleteTarget: string | null
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onDelete: (name: string) => void
+}) {
+  const [selectedPhoto, setSelectedPhoto] = useState<{ name: string; url: string; created_at: string } | null>(null)
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="font-heading text-[16px] font-semibold text-foreground">Photos</h2>
+          <p className="text-[12px] text-muted mt-0.5">Track progress, recovery, and posture over time.</p>
+        </div>
+        <label className="text-[13px] font-semibold text-white bg-primary hover:bg-primary-light transition-all px-4 py-2 rounded-xl shadow-sm shadow-primary/20 flex items-center gap-1.5 cursor-pointer">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          {uploading ? 'Uploading...' : 'Upload Photos'}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={onUpload}
+            disabled={uploading}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-16">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[13px] text-muted">Loading photos...</p>
+        </div>
+      ) : photos.length === 0 ? (
+        <div className="text-center py-16">
+          <svg className="w-12 h-12 mx-auto text-foreground/10 mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H3.75A2.25 2.25 0 001.5 6.75v12a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <p className="text-[14px] text-muted mb-2">No photos yet.</p>
+          <p className="text-[12px] text-muted/60">
+            Upload photos to document progress, posture, recovery, or anything relevant to this client.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {photos.map(photo => (
+            <div
+              key={photo.name}
+              className="relative group rounded-2xl overflow-hidden border border-border bg-white aspect-square cursor-pointer"
+              onClick={() => setSelectedPhoto(photo)}
+            >
+              <img
+                src={photo.url}
+                alt={photo.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-end justify-between p-2 opacity-0 group-hover:opacity-100">
+                {photo.created_at && (
+                  <span className="text-[10px] text-white bg-black/50 rounded-md px-2 py-0.5">
+                    {new Date(photo.created_at).toLocaleDateString()}
+                  </span>
+                )}
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(photo.name) }}
+                  disabled={deleteTarget === photo.name}
+                  className="text-white bg-red-500/80 hover:bg-red-600 rounded-lg p-1.5 transition-colors"
+                >
+                  {deleteTarget === photo.name ? (
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Photo lightbox */}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div className="relative max-w-3xl max-h-[90vh] w-full" onClick={e => e.stopPropagation()}>
+            <img
+              src={selectedPhoto.url}
+              alt={selectedPhoto.name}
+              className="w-full h-full object-contain rounded-2xl"
+            />
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            {selectedPhoto.created_at && (
+              <div className="absolute bottom-3 left-3 text-[12px] text-white bg-black/50 rounded-lg px-3 py-1.5">
+                {new Date(selectedPhoto.created_at).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

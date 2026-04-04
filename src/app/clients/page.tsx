@@ -17,7 +17,8 @@ export default async function ClientsPage() {
       .from('clients')
       .select('*')
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
+      .order('first_name', { ascending: true })
+      .order('last_name', { ascending: true })
     clients = data ?? []
   }
 
