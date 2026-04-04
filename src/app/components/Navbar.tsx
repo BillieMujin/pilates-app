@@ -47,22 +47,12 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
               <Link
-                href="/"
-                className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
-                title="Exercises"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                </svg>
-                <span className="hidden sm:inline">Exercises</span>
-              </Link>
-              <Link
                 href="/clients"
-                className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
+                className="flex items-center gap-1.5 text-[13px] font-medium text-primary/70 hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/[0.04]"
                 title="Clients"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -72,7 +62,7 @@ export default function Navbar({ user }: NavbarProps) {
               </Link>
               <button
                 onClick={handleSignOut}
-                className="text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
+                className="text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
               >
                 <span className="hidden sm:inline">Sign Out</span>
                 <svg className="w-4 h-4 sm:hidden" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
