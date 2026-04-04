@@ -100,9 +100,11 @@ interface RegionValue {
 }
 
 interface ClientIntake {
+  sex: string
+  age: string
   occupation: string
-  sittingHours: string
-  repetitiveActivities: string
+  typicalDay: string
+  typicalDayDetails: string
   medicalConditions: string
   pregnantPostnatal: string
   pregnantPostnatalDetails: string
@@ -157,7 +159,7 @@ interface Props {
 /* ─── initial state ─── */
 
 const EMPTY_INTAKE: ClientIntake = {
-  occupation: '', sittingHours: '', repetitiveActivities: '',
+  sex: '', age: '', occupation: '', typicalDay: '', typicalDayDetails: '',
   medicalConditions: '', pregnantPostnatal: '', pregnantPostnatalDetails: '',
   medication: '', medicationDetails: '', surgeries: '', surgeryDetails: '',
   difficultMovements: '', functionalConcerns: [], medicalRestrictions: '',
@@ -191,193 +193,21 @@ function createInitialState(): WizardState {
 
 /* ─── intake constants ─── */
 
-const PAIN_AREAS = ['Neck', 'Upper back', 'Lower back', 'Shoulders', 'Hips', 'Knees', 'Ankles & feet', 'Wrists & hands']
-const PAIN_TIMING = ['At rest', 'During movement', 'After prolonged sitting', 'After prolonged standing', 'At night', 'Morning stiffness']
-const FUNCTIONAL_CONCERNS = ['Balance issues', 'Stiffness', 'Weakness', 'Numbness or tingling', 'Shortness of breath during mild activity', 'Joint clicking or popping']
-const SPORTS_ACTIVITIES = ['Running', 'Walking', 'Weight training', 'Gym', 'Yoga', 'Swimming', 'Cycling', 'Dance']
-const PILATES_GOALS = ['Pain relief', 'Posture improvement', 'Flexibility', 'Strength', 'Rehabilitation', 'Stress relief', 'Sport performance', 'General wellbeing']
+/* intake constants removed — intake is now client-facing via /intake/[token] */
 
-/* ─── intake form ─── */
+/* ─── intake info (now client-facing, this step just shows info) ─── */
 
-function IntakeForm({ intake, onChange }: { intake: ClientIntake; onChange: (v: ClientIntake) => void }) {
-  const update = (field: keyof ClientIntake, value: string | string[]) => {
-    onChange({ ...intake, [field]: value })
-  }
-  const toggleMulti = (field: keyof ClientIntake, value: string) => {
-    const arr = (intake[field] as string[]) || []
-    const next = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
-    onChange({ ...intake, [field]: next })
-  }
-
-  const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all'
-  const labelCls = 'block mb-1.5 text-[13px] font-medium text-foreground'
-  const hintCls = 'text-[11px] text-muted mt-1'
-
-  const YesNo = ({ field, detailField, detailPlaceholder }: { field: keyof ClientIntake; detailField: keyof ClientIntake; detailPlaceholder: string }) => (
-    <div>
-      <div className="flex gap-3 mb-2">
-        {['Yes', 'No'].map(opt => (
-          <label key={opt} className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all text-[13px] border ${
-            intake[field] === opt.toLowerCase() ? 'bg-primary/[0.06] border-primary/20 font-medium' : 'border-border hover:bg-black/[0.02]'
-          }`}>
-            <input type="radio" name={field} checked={intake[field] === opt.toLowerCase()} onChange={() => update(field, opt.toLowerCase())} className="w-3.5 h-3.5 accent-primary" />
-            {opt}
-          </label>
-        ))}
-      </div>
-      {intake[field] === 'yes' && (
-        <input type="text" value={(intake[detailField] as string) || ''} onChange={e => update(detailField, e.target.value)} placeholder={detailPlaceholder} className={inputCls} />
-      )}
-    </div>
-  )
-
-  const MultiSelect = ({ options, field }: { options: string[]; field: keyof ClientIntake }) => (
-    <div className="flex flex-wrap gap-2">
-      {options.map(opt => {
-        const selected = ((intake[field] as string[]) || []).includes(opt)
-        return (
-          <button key={opt} type="button" onClick={() => toggleMulti(field, opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
-            selected ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
-          }`}>
-            {opt}
-          </button>
-        )
-      })}
-    </div>
-  )
-
+function IntakeForm() {
   return (
-    <div className="max-w-lg mx-auto space-y-4">
-      {/* Section 1: Occupation & Daily Life */}
-      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Occupation & Daily Life</h4>
-        <div>
-          <label className={labelCls}>Occupation</label>
-          <input type="text" value={intake.occupation} onChange={e => update('occupation', e.target.value)} placeholder="e.g. office worker, teacher, retired" className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>How many hours per day do you sit?</label>
-          <select value={intake.sittingHours} onChange={e => update('sittingHours', e.target.value)} className={inputCls}>
-            <option value="">Select...</option>
-            {['0-2', '2-4', '4-6', '6-8', '8-10', '10+'].map(v => <option key={v} value={v}>{v} hours</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelCls}>Do you have any daily activities that involve repetitive movement?</label>
-          <input type="text" value={intake.repetitiveActivities} onChange={e => update('repetitiveActivities', e.target.value)} placeholder="e.g. gardening, carrying children, playing an instrument, driving long hours" className={inputCls} />
-        </div>
-      </div>
-
-      {/* Section 2: Health & Medical */}
-      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Health & Medical</h4>
-        <div>
-          <label className={labelCls}>Do you have any current medical conditions?</label>
-          <input type="text" value={intake.medicalConditions} onChange={e => update('medicalConditions', e.target.value)} placeholder="Describe or leave blank" className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Are you currently pregnant or postnatal?</label>
-          <YesNo field="pregnantPostnatal" detailField="pregnantPostnatalDetails" detailPlaceholder="How many weeks/months?" />
-        </div>
-        <div>
-          <label className={labelCls}>Are you taking any medication that affects movement, balance, or bone density?</label>
-          <YesNo field="medication" detailField="medicationDetails" detailPlaceholder="Which medication?" />
-        </div>
-        <div>
-          <label className={labelCls}>Have you had any surgeries?</label>
-          <YesNo field="surgeries" detailField="surgeryDetails" detailPlaceholder="What & when?" />
-        </div>
-        <div>
-          <label className={labelCls}>Are there any movements you find difficult or avoid?</label>
-          <input type="text" value={intake.difficultMovements} onChange={e => update('difficultMovements', e.target.value)} placeholder="e.g. bending forward, looking over shoulder, getting up from floor" className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Do you experience any of the following?</label>
-          <MultiSelect options={FUNCTIONAL_CONCERNS} field="functionalConcerns" />
-        </div>
-        <div>
-          <label className={labelCls}>Is there anything your doctor or physiotherapist has told you to avoid?</label>
-          <input type="text" value={intake.medicalRestrictions} onChange={e => update('medicalRestrictions', e.target.value)} placeholder="Describe or leave blank" className={inputCls} />
-        </div>
-      </div>
-
-      {/* Section 3: Injuries & Pain */}
-      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Injuries & Pain</h4>
-        <div>
-          <label className={labelCls}>Do you have any current injuries?</label>
-          <YesNo field="currentInjuries" detailField="currentInjuryDetails" detailPlaceholder="Location and how long?" />
-        </div>
-        <div>
-          <label className={labelCls}>Do you have any previous injuries that still affect you?</label>
-          <YesNo field="previousInjuries" detailField="previousInjuryDetails" detailPlaceholder="What & when?" />
-        </div>
-        <div>
-          <label className={labelCls}>Do you experience recurring pain?</label>
-          <MultiSelect options={PAIN_AREAS} field="recurringPain" />
-          <input type="text" value={intake.recurringPainOther} onChange={e => update('recurringPainOther', e.target.value)} placeholder="Other area (please specify)" className={inputCls + ' mt-2'} />
-        </div>
-        {((intake.recurringPain?.length ?? 0) > 0 || intake.recurringPainOther) && (
-          <div>
-            <label className={labelCls}>When does it typically occur?</label>
-            <MultiSelect options={PAIN_TIMING} field="painTiming" />
-            <input type="text" value={intake.painTimingOther} onChange={e => update('painTimingOther', e.target.value)} placeholder="Other timing or specific trigger (e.g. when rotating head to the right)" className={inputCls + ' mt-2'} />
-          </div>
-        )}
-      </div>
-
-      {/* Section 4: Movement & Activity */}
-      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Movement & Activity</h4>
-        <div>
-          <label className={labelCls}>What physical activities or sports do you currently do?</label>
-          <MultiSelect options={SPORTS_ACTIVITIES} field="currentActivities" />
-          <input type="text" value={intake.currentActivitiesOther} onChange={e => update('currentActivitiesOther', e.target.value)} placeholder="Other (please specify)" className={inputCls + ' mt-2'} />
-        </div>
-        <div>
-          <label className={labelCls}>How often?</label>
-          <div className="flex flex-wrap gap-2">
-            {['Daily', '3-5x week', '1-2x week', 'A few times per month', 'Not currently active'].map(opt => (
-              <button key={opt} type="button" onClick={() => update('activityFrequency', intake.activityFrequency === opt ? '' : opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
-                intake.activityFrequency === opt ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
-              }`}>
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Section 5: Pilates Goals */}
-      <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-        <h4 className="font-heading text-[14px] font-semibold text-foreground/50 uppercase tracking-wider">Pilates Goals</h4>
-        <div>
-          <label className={labelCls}>Have you done Pilates before?</label>
-          <div className="flex flex-wrap gap-2">
-            {['Never', 'A few times', 'Regularly in the past', 'Currently practising'].map(opt => (
-              <button key={opt} type="button" onClick={() => update('pilatesExperience', intake.pilatesExperience === opt ? '' : opt)} className={`text-[12px] px-3 py-1.5 rounded-lg border transition-all ${
-                intake.pilatesExperience === opt ? 'bg-primary/[0.08] border-primary/25 text-foreground font-medium' : 'border-border text-muted hover:bg-black/[0.02]'
-              }`}>
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className={labelCls}>What are your goals with Pilates?</label>
-          <MultiSelect options={PILATES_GOALS} field="pilatesGoals" />
-        </div>
-        <div>
-          <label className={labelCls}>Is there anything specific you&apos;d like to work on or improve?</label>
-          <input type="text" value={intake.specificGoals} onChange={e => update('specificGoals', e.target.value)} placeholder="Free text" className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Anything else you&apos;d like me to know?</label>
-          <textarea value={intake.anythingElse} onChange={e => update('anythingElse', e.target.value)} placeholder="Free text" rows={3} className={inputCls} />
-        </div>
-      </div>
-
-      <p className="text-[11px] text-center text-muted/50">All fields are optional — fill in what applies.</p>
+    <div className="max-w-lg mx-auto text-center py-8">
+      <svg className="w-12 h-12 mx-auto text-foreground/10 mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-3.022a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364l1.757 1.757" />
+      </svg>
+      <h3 className="font-heading text-[16px] font-semibold text-foreground mb-2">Client intake is now self-service</h3>
+      <p className="text-[13px] text-muted leading-relaxed max-w-sm mx-auto">
+        The intake questionnaire is completed by the client directly via a shareable link. You can manage intake forms from the client profile in the <strong>Clients</strong> section.
+      </p>
+      <p className="text-[12px] text-muted/50 mt-4">You can skip this step and proceed to the assessment.</p>
     </div>
   )
 }
@@ -1425,7 +1255,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
         )
 
       case 1:
-        return <IntakeForm intake={state.clientIntake} onChange={(intake: ClientIntake) => setState(prev => ({ ...prev, clientIntake: intake }))} />
+        return <IntakeForm />
 
       case 2:
         return (

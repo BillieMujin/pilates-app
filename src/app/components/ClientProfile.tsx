@@ -9,9 +9,11 @@ import type { Client, PosturalAssessment, ClientClassPlan } from '@/lib/types'
 /* ─── intake types & constants (shared with AssessmentWizard) ─── */
 
 interface ClientIntake {
+  sex: string
+  age: string
   occupation: string
-  sittingHours: string
-  repetitiveActivities: string
+  typicalDay: string
+  typicalDayDetails: string
   medicalConditions: string
   pregnantPostnatal: string
   pregnantPostnatalDetails: string
@@ -40,7 +42,7 @@ interface ClientIntake {
 }
 
 const EMPTY_INTAKE: ClientIntake = {
-  occupation: '', sittingHours: '', repetitiveActivities: '',
+  sex: '', age: '', occupation: '', typicalDay: '', typicalDayDetails: '',
   medicalConditions: '', pregnantPostnatal: '', pregnantPostnatalDetails: '',
   medication: '', medicationDetails: '', surgeries: '', surgeryDetails: '',
   difficultMovements: '', functionalConcerns: [], medicalRestrictions: '',
@@ -51,11 +53,7 @@ const EMPTY_INTAKE: ClientIntake = {
   specificGoals: '', anythingElse: '',
 }
 
-const PAIN_AREAS = ['Neck', 'Upper back', 'Lower back', 'Shoulders', 'Hips', 'Knees', 'Ankles & feet', 'Wrists & hands']
-const PAIN_TIMING = ['At rest', 'During movement', 'After prolonged sitting', 'After prolonged standing', 'At night', 'Morning stiffness']
-const FUNCTIONAL_CONCERNS = ['Balance issues', 'Stiffness', 'Weakness', 'Numbness or tingling', 'Shortness of breath during mild activity', 'Joint clicking or popping']
-const SPORTS_ACTIVITIES = ['Running', 'Walking', 'Weight training', 'Gym', 'Yoga', 'Swimming', 'Cycling', 'Dance']
-const PILATES_GOALS = ['Pain relief', 'Posture improvement', 'Flexibility', 'Strength', 'Rehabilitation', 'Stress relief', 'Sport performance', 'General wellbeing']
+const SEX_LABELS: Record<string, string> = { female: 'Female', male: 'Male', prefer_not_to_say: 'Prefer not to say' }
 
 const POSTURE_META: Record<string, { label: string; color: string }> = {
   kyphosis:      { label: 'Kyphosis-Lordosis', color: '#6b2d5b' },
@@ -336,10 +334,11 @@ function IntakeTab({
         <div>
           <h2 className="font-heading text-[16px] font-semibold text-foreground mb-4">Client Responses</h2>
           <div className="space-y-4">
-            <ReadSection title="Occupation & Daily Life" items={[
+            <ReadSection title="About" items={[
+              { label: 'Sex', value: SEX_LABELS[intake.sex] || intake.sex },
+              { label: 'Age', value: intake.age },
               { label: 'Occupation', value: intake.occupation },
-              { label: 'Sitting hours/day', value: intake.sittingHours },
-              { label: 'Repetitive activities', value: intake.repetitiveActivities },
+              { label: 'Typical day', value: [intake.typicalDay, intake.typicalDayDetails].filter(Boolean).join(' — ') },
             ]} />
 
             <ReadSection title="Health & Medical" items={[
