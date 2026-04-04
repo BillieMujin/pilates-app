@@ -7,10 +7,9 @@ import type { User } from '@supabase/supabase-js'
 
 interface NavbarProps {
   user: User | null
-  onHomeClick?: () => void
 }
 
-export default function Navbar({ user, onHomeClick }: NavbarProps) {
+export default function Navbar({ user }: NavbarProps) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -48,35 +47,22 @@ export default function Navbar({ user, onHomeClick }: NavbarProps) {
           </div>
         </Link>
 
-        <div className="flex items-center gap-3">
-          {onHomeClick ? (
-            <button
-              onClick={onHomeClick}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
-              title="Home"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-              </svg>
-              <span className="hidden sm:inline">Home</span>
-            </button>
-          ) : (
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
-              title="Home"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-              </svg>
-              <span className="hidden sm:inline">Home</span>
-            </Link>
-          )}
+        <div className="flex items-center gap-1 sm:gap-2">
           {user ? (
             <>
               <Link
+                href="/"
+                className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
+                title="Exercises"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                </svg>
+                <span className="hidden sm:inline">Exercises</span>
+              </Link>
+              <Link
                 href="/clients"
-                className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
+                className="flex items-center gap-1.5 text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
                 title="Clients"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -86,9 +72,12 @@ export default function Navbar({ user, onHomeClick }: NavbarProps) {
               </Link>
               <button
                 onClick={handleSignOut}
-                className="text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
+                className="text-[13px] font-medium text-foreground/40 hover:text-foreground/70 transition-colors px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-black/[0.03]"
               >
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
+                <svg className="w-4 h-4 sm:hidden" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
               </button>
             </>
           ) : (

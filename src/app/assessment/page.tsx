@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import AssessmentWizard from '../components/AssessmentWizard'
-import type { Exercise, PosturalAssessment } from '@/lib/types'
+import type { Exercise, PosturalAssessment, Client } from '@/lib/types'
 
 export default async function AssessmentPage() {
   const supabase = await createClient()
@@ -15,18 +17,24 @@ export default async function AssessmentPage() {
     redirect('/auth/login')
   }
 
-  // Fetch saved assessments
-  const { data: assessments } = await supabase
-    .from('postural_assessments')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false })
-
-  // Fetch exercises for corrective recommendations
-  const { data: exercises } = await supabase
-    .from('exercises')
-    .select('*')
-    .order('sort_order', { ascending: true })
+  // Fetch saved assessments, exercises, and clients in parallel
+  const [assessmentsResult, exercisesResult, clientsResult] = await Promise.all([
+    supabase
+      .from('postural_assessments')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false }),
+    supabase
+      .from('exercises')
+      .select('*')
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('clients')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('first_name', { ascending: true })
+      .order('last_name', { ascending: true }),
+  ])
 
   return (
     <>
@@ -45,12 +53,16 @@ export default async function AssessmentPage() {
           </div>
         </div>
 
-        <AssessmentWizard
-          user={user}
-          savedAssessments={(assessments as PosturalAssessment[]) ?? []}
-          exercises={(exercises as Exercise[]) ?? []}
-        />
+        <Suspense fallback={null}>
+          <AssessmentWizard
+            user={user}
+            savedAssessments={(assessmentsResult.data as PosturalAssessment[]) ?? []}
+            exercises={(exercisesResult.data as Exercise[]) ?? []}
+            clients={(clientsResult.data as Client[]) ?? []}
+          />
+        </Suspense>
       </main>
+      <Footer />
     </>
   )
 }

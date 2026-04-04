@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import type { Exercise, PosturalAssessment } from '@/lib/types'
+import type { Exercise, PosturalAssessment, Client } from '@/lib/types'
 
 /* ─── constants ─── */
 
@@ -154,6 +154,7 @@ interface Props {
   user: User
   savedAssessments: PosturalAssessment[]
   exercises: Exercise[]
+  clients?: Client[]
 }
 
 /* ─── initial state ─── */
@@ -381,7 +382,7 @@ function detectPosture(state: WizardState): { posture: string | null; scores: Re
 
 /* ─── component ─── */
 
-export default function AssessmentWizard({ user, savedAssessments, exercises }: Props) {
+export default function AssessmentWizard({ user, savedAssessments, exercises, clients = [] }: Props) {
   const [step, setStep] = useState(0)
   const [state, setState] = useState<WizardState>(createInitialState)
   const [saving, setSaving] = useState(false)
@@ -389,8 +390,23 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(false)
   const [showLeaveDialog, setShowLeaveDialog] = useState(false)
+  const [linkedClientId, setLinkedClientId] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Auto-link to client from query param (?client=id)
+  useEffect(() => {
+    const clientParam = searchParams.get('client')
+    if (clientParam && clients.length > 0) {
+      const matched = clients.find(c => c.id === clientParam)
+      if (matched) {
+        setLinkedClientId(matched.id)
+        const fullName = [matched.first_name, matched.last_name].filter(Boolean).join(' ')
+        setState(prev => ({ ...prev, clientName: fullName }))
+      }
+    }
+  }, [searchParams, clients])
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -693,6 +709,7 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
 
     const payload = {
       user_id: user.id,
+      client_id: linkedClientId || null,
       client_name: state.clientName,
       assessment_date: state.assessmentDate,
       client_intake: state.clientIntake,
@@ -1195,14 +1212,54 @@ export default function AssessmentWizard({ user, savedAssessments, exercises }: 
       case 0:
         return (
           <div className="max-w-lg mx-auto space-y-6">
+            {/* Client selector (optional — link to existing client) */}
+            {clients.length > 0 && (
+              <div className="bg-white rounded-2xl border border-border p-6">
+                <label className="block mb-1.5 text-[13px] font-medium text-foreground">Link to Client <span className="text-foreground/30 font-normal">(optional)</span></label>
+                <select
+                  value={linkedClientId || ''}
+                  onChange={e => {
+                    const id = e.target.value
+                    if (id) {
+                      const c = clients.find(cl => cl.id === id)
+                      if (c) {
+                        setLinkedClientId(id)
+                        const fullName = [c.first_name, c.last_name].filter(Boolean).join(' ')
+                        setState(prev => ({ ...prev, clientName: fullName }))
+                      }
+                    } else {
+                      setLinkedClientId(null)
+                      setState(prev => ({ ...prev, clientName: '' }))
+                    }
+                  }}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
+                >
+                  <option value="">Standalone assessment (no client)</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {[c.first_name, c.last_name].filter(Boolean).join(' ')}{c.age ? ` (${c.age})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-muted/50 mt-2">
+                  {linkedClientId
+                    ? 'This assessment will be saved to the client\'s profile.'
+                    : 'Leave unlinked for prospects or external assessments. You can still record a name below.'}
+                </p>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl border border-border p-6">
-              <label className="block mb-1.5 text-[13px] font-medium text-foreground">Client Name</label>
+              <label className="block mb-1.5 text-[13px] font-medium text-foreground">
+                {linkedClientId ? 'Client Name' : 'Name *'}
+              </label>
               <input
                 type="text"
                 value={state.clientName}
                 onChange={e => setState(prev => ({ ...prev, clientName: e.target.value }))}
                 placeholder="Enter client name"
-                className="w-full px-4 py-2.5 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
+                readOnly={!!linkedClientId}
+                className={`w-full px-4 py-2.5 rounded-xl border border-border text-[14px] bg-background focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all ${linkedClientId ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
             </div>
             <div className="bg-white rounded-2xl border border-border p-6">

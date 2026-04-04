@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ClientList from '../components/ClientList'
@@ -49,12 +50,25 @@ export default async function ClientsPage() {
       <main className="flex-1">
         <div className="bg-surface border-b border-border">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              Clients
-            </h1>
-            <p className="text-muted text-sm sm:text-base">
-              Manage your clients, their intake forms, assessments, and class plans.
-            </p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                  Clients
+                </h1>
+                <p className="text-muted text-sm sm:text-base">
+                  Manage your clients, their intake forms, assessments, and class plans.
+                </p>
+              </div>
+              <Link
+                href="/assessment"
+                className="shrink-0 inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground/50 hover:text-primary bg-white border border-border hover:border-primary/30 px-4 py-2 rounded-xl transition-all mt-1"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                Quick Assessment
+              </Link>
+            </div>
           </div>
         </div>
         <ClientList clients={clients} assessmentMap={assessmentMap} />
