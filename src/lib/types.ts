@@ -99,6 +99,8 @@ export interface Client {
   last_name: string
   age: number | null
   intake: Record<string, any>
+  intake_token: string
+  intake_completed_at: string | null
   consent_given: boolean
   consent_date: string | null
   notes: string

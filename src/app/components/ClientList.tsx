@@ -137,7 +137,7 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
               className="w-4 h-4 mt-0.5 accent-primary shrink-0"
             />
             <span className="text-[12px] text-muted leading-relaxed">
-              I confirm that I have obtained this client&apos;s consent to store their personal and health data for the purpose of providing Pilates instruction. The client has been informed about what data is collected, why it is stored, and their right to request access or deletion at any time. See our{' '}
+              I confirm that this client will be sent an intake form where they can provide their personal and health data directly. The client will give their own consent before submitting. See our{' '}
               <Link href="/privacy" className="text-primary hover:underline" onClick={e => e.stopPropagation()}>
                 Privacy Policy
               </Link>{' '}
@@ -201,8 +201,10 @@ export default function ClientList({ clients: initialClients, assessmentMap }: P
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  {hasIntake && (
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-green-50 text-green-600 border border-green-100">Intake done</span>
+                  {(client as Client & { intake_completed_at?: string }).intake_completed_at ? (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-green-50 text-green-600 border border-green-100">Intake completed</span>
+                  ) : (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-100">Intake pending</span>
                   )}
                   {lastAssessment ? (
                     <>
