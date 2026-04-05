@@ -426,7 +426,7 @@ export default function ExerciseBrowser({ exercises, user, initialFavorites, ini
     <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
 
       {/* ── Filter bar (sticky) ── */}
-      <div className="sticky top-16 z-40 bg-background/90 backdrop-blur-xl -mx-5 sm:-mx-8 px-5 sm:px-8 pt-5 pb-4 mb-8">
+      <div data-filter-bar className="sticky top-16 z-40 bg-background/90 backdrop-blur-xl -mx-5 sm:-mx-8 px-5 sm:px-8 pt-5 pb-4 mb-8">
 
         {/* Clients link (logged-in only) */}
         {user && (
@@ -844,11 +844,14 @@ function ExerciseCard({
       setTimeout(() => {
         if (!cardRef.current) return
         const rect = cardRef.current.getBoundingClientRect()
-        // Account for sticky navbar (64px) + sticky filter bar (variable height)
-        // On mobile the filter bar can be ~220px, on desktop ~160px
-        const stickyOffset = window.innerWidth < 640 ? 70 : 80
-        const scrollY = window.scrollY + rect.top - stickyOffset
-        window.scrollTo({ top: scrollY, behavior: 'smooth' })
+        // Measure actual sticky area: navbar + filter bar
+        const filterBar = document.querySelector('[data-filter-bar]')
+        const filterBarBottom = filterBar ? filterBar.getBoundingClientRect().bottom : 64
+        const padding = 12
+        if (rect.top < filterBarBottom + padding) {
+          const scrollY = window.scrollY + rect.top - filterBarBottom - padding
+          window.scrollTo({ top: scrollY, behavior: 'smooth' })
+        }
       }, 450)
     }
   }, [expanded])
