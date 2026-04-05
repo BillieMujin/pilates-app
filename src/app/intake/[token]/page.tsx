@@ -191,7 +191,7 @@ export default function PublicIntakePage({ params }: { params: Promise<{ token: 
   const isMale = intake.sex === 'male'
 
   /* ─── shared styles ─── */
-  const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-[#e5e0db] text-[14px] bg-white focus:outline-none focus:border-[#6b5e6e]/40 focus:ring-2 focus:ring-[#6b5e6e]/10 transition-all'
+  const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-[#e5e0db] text-[16px] bg-white focus:outline-none focus:border-[#6b5e6e]/40 focus:ring-2 focus:ring-[#6b5e6e]/10 transition-all'
   const labelCls = 'block mb-1.5 text-[13px] font-medium text-[#2c2c2c]'
   const hintCls = 'text-[11px] text-[#6b5e6e]/50 mt-1'
   const reqCls = 'text-red-400 ml-0.5'
@@ -219,9 +219,9 @@ export default function PublicIntakePage({ params }: { params: Promise<{ token: 
           <Chip key={opt} label={opt} selected={intake[field] === opt.toLowerCase()} onClick={() => update(field, opt.toLowerCase())} />
         ))}
       </div>
-      {intake[field] === 'yes' && (
-        <input type="text" value={(intake[detailField] as string) || ''} onChange={e => update(detailField, e.target.value)} placeholder={detailPlaceholder} className={inputCls} />
-      )}
+      <div className={`overflow-hidden transition-all duration-200 ${intake[field] === 'yes' ? 'max-h-20 opacity-100 mt-0' : 'max-h-0 opacity-0'}`}>
+        <input type="text" value={(intake[detailField] as string) || ''} onChange={e => update(detailField, e.target.value)} placeholder={detailPlaceholder} className={inputCls} tabIndex={intake[field] === 'yes' ? 0 : -1} />
+      </div>
     </div>
   )
 
@@ -373,9 +373,9 @@ export default function PublicIntakePage({ params }: { params: Promise<{ token: 
                   <Chip key={opt} label={opt} selected={intake.typicalDay === opt} onClick={() => update('typicalDay', intake.typicalDay === opt ? '' : opt)} />
                 ))}
               </div>
-              {intake.typicalDay && (
-                <input type="text" value={intake.typicalDayDetails} onChange={e => update('typicalDayDetails', e.target.value)} placeholder="Tell us more (e.g. I sit at a desk 8 hours, I carry heavy boxes at work)" className={inputCls + ' mt-2'} />
-              )}
+              <div className={`overflow-hidden transition-all duration-200 ${intake.typicalDay ? 'max-h-20 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                <input type="text" value={intake.typicalDayDetails} onChange={e => update('typicalDayDetails', e.target.value)} placeholder="Tell us more (e.g. I sit at a desk 8 hours, I carry heavy boxes at work)" className={inputCls} tabIndex={intake.typicalDay ? 0 : -1} />
+              </div>
             </div>
           </div>
         )
@@ -435,13 +435,13 @@ export default function PublicIntakePage({ params }: { params: Promise<{ token: 
               <MultiChips options={PAIN_AREAS} field="recurringPain" />
               <input type="text" value={intake.recurringPainOther} onChange={e => update('recurringPainOther', e.target.value)} placeholder="Other area (please specify)" className={inputCls + ' mt-2'} />
             </div>
-            {((intake.recurringPain?.length ?? 0) > 0 || intake.recurringPainOther) && (
-              <div>
+            <div className={`overflow-hidden transition-all duration-200 ${((intake.recurringPain?.length ?? 0) > 0 || intake.recurringPainOther) ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="pt-6">
                 <label className={labelCls}>When does it typically occur?</label>
                 <MultiChips options={PAIN_TIMING} field="painTiming" />
-                <input type="text" value={intake.painTimingOther} onChange={e => update('painTimingOther', e.target.value)} placeholder="Other timing or trigger (e.g. when rotating head to the right)" className={inputCls + ' mt-2'} />
+                <input type="text" value={intake.painTimingOther} onChange={e => update('painTimingOther', e.target.value)} placeholder="Other timing or trigger (e.g. when rotating head to the right)" className={inputCls + ' mt-2'} tabIndex={((intake.recurringPain?.length ?? 0) > 0 || intake.recurringPainOther) ? 0 : -1} />
               </div>
-            )}
+            </div>
           </div>
         )
 

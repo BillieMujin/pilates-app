@@ -838,18 +838,17 @@ function ExerciseCard({
     ? (exercise.posture_benefits as Record<string, string>)[activePosture] ?? null
     : null
 
-  // Scroll to top of card after expand animation completes (400ms animation + buffer)
+  // Scroll to top of card after expand animation completes
   useEffect(() => {
     if (expanded && cardRef.current) {
       setTimeout(() => {
         if (!cardRef.current) return
         const rect = cardRef.current.getBoundingClientRect()
-        // Account for sticky navbar (64px) + sticky filter bar (~160px on mobile)
-        const stickyOffset = 80
-        if (rect.top < stickyOffset || rect.top > window.innerHeight * 0.5) {
-          const scrollY = window.scrollY + rect.top - stickyOffset
-          window.scrollTo({ top: scrollY, behavior: 'smooth' })
-        }
+        // Account for sticky navbar (64px) + sticky filter bar (variable height)
+        // On mobile the filter bar can be ~220px, on desktop ~160px
+        const stickyOffset = window.innerWidth < 640 ? 70 : 80
+        const scrollY = window.scrollY + rect.top - stickyOffset
+        window.scrollTo({ top: scrollY, behavior: 'smooth' })
       }, 450)
     }
   }, [expanded])
