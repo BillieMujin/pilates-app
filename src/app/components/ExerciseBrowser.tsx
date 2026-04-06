@@ -944,12 +944,15 @@ function ExerciseCard({
               <>
                 <Section title="Setup">
                   <ul className="space-y-1">
-                    {exercise.cues.setup.map((s, i) => (
-                      <li key={i} className="text-[13px] text-foreground/70 leading-relaxed flex gap-2">
-                        <span className="text-primary/40 font-bold shrink-0 mt-px">•</span>
-                        <span>{s}</span>
-                      </li>
-                    ))}
+                    {exercise.cues.setup.map((s, i) => {
+                      const isSub = s.trimStart().startsWith('—')
+                      return (
+                        <li key={i} className={`text-[13px] text-foreground/70 leading-relaxed flex gap-2 ${isSub ? 'ml-4' : ''}`}>
+                          {!isSub && <span className="text-primary/40 font-bold shrink-0 mt-px">•</span>}
+                          <span>{isSub ? s.trimStart() : s}</span>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </Section>
                 <Section title="Movement">
